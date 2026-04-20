@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem
+        id="menu_hashtap_root"
+        name="HashTap"
+        sequence="45"
+        web_icon="hashtap_pos,static/description/icon.png"/>
+
+    <menuitem
+        id="menu_hashtap_operations"
+        name="Operasyon"
+        parent="menu_hashtap_root"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_hashtap_catalog"
+        name="Menü Katalogu"
+        parent="menu_hashtap_root"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_hashtap_settings"
+        name="Ayarlar"
+        parent="menu_hashtap_root"
+        sequence="90"/>
+
+</odoo>

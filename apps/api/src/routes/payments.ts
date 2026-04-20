@@ -1,15 +1,19 @@
 import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import { resolveTenantDb } from '../tenant-resolver.js';
+import { odooPost } from '../odoo-client.js';
 
-/**
- * Ödeme modeli: iyzico subMerchant — para doğrudan restoranın alt hesabına.
- * HashTap paraya dokunmaz, sadece ödemeyi tetikler.
- *
- * POST /v1/payments/intent              — ödeme oluştur (3DS redirect döner)
- * POST /v1/payments/webhook/iyzico      — iyzico webhook imza doğrulama
- * POST /v1/payments/webhook/paytr       — paytr webhook
- */
+const startSchema = z.object({
+  tenant_slug: z.string(),
+  order_id: z.number(),
+  return_url: z.string().url(),
+});
+
 export async function paymentRoutes(app: FastifyInstance) {
-  app.post('/webhook/iyzico', async (req, reply) => {
-    reply.code(501).send({ error: 'not_implemented' });
+  app.post('/3ds/start', async (req, reply) => {
+    const body = startSchema.parse(req.body);
+    const db = await resolveTenantDb(body.tenant_slug);
+    const data = await odooPost(db, '/hashtap/payment/3ds/start', body);
+    return reply.send(data);
   });
 }

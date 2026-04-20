@@ -1,14 +1,18 @@
 import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import { resolveTenantDb } from '../tenant-resolver.js';
+import { odooGet } from '../odoo-client.js';
 
-/**
- * GET  /v1/menu/:tenantSlug          — müşteri PWA'sına menü
- * POST /v1/menu/:tenantId/items      — restoran panelinden ürün düzenleme
- * POST /v1/menu/:tenantId/sync       — POS'tan menü senkronizasyonu tetikleme
- *
- * Menü senkronizasyonu için katmanlı sahiplik modeli bkz. docs/hashcash.md §7.
- */
+const paramsSchema = z.object({
+  tenantSlug: z.string().min(1),
+  tableSlug: z.string().min(1),
+});
+
 export async function menuRoutes(app: FastifyInstance) {
-  app.get('/:tenantSlug', async (req, reply) => {
-    reply.code(501).send({ error: 'not_implemented' });
+  app.get('/:tenantSlug/:tableSlug', async (req, reply) => {
+    const { tenantSlug, tableSlug } = paramsSchema.parse(req.params);
+    const db = await resolveTenantDb(tenantSlug);
+    const data = await odooGet(db, `/hashtap/menu/${tenantSlug}/${tableSlug}`);
+    return reply.send(data);
   });
 }

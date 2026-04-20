@@ -11,62 +11,50 @@ HashTap, restoranın mevcut iş akışını **değiştirmeden** çalışan bir s
 - Restoran: sipariş mevcut mutfak/bar yazıcısından fiş olarak düşer, ödeme restoranın merchant hesabına gider
 - Biz (HashTap): aradaki sipariş + ödeme + eşleştirme + e-Arşiv katmanı
 
-Detaylı ürün ve iş planı: [docs/hashcash.md](./docs/hashcash.md)
-Müşteri sunumu: [docs/hashtap-satisunumu.pdf](./docs/hashtap-satisunumu.pdf)
+Detaylı ürün ve iş planı: [docs/PRODUCT.md](./docs/PRODUCT.md)
+Roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md)
+Mimari: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 
-## Monorepo yapısı
+## Repo yapısı
 
 ```
 hashtap/
+├── odoo-addons/
+│   ├── hashtap_pos/            # iş mantığı: menü, sipariş, iyzico, e-Arşiv
+│   └── hashtap_theme/          # white-label (logo, renk, login, email)
 ├── apps/
-│   ├── customer-pwa/          # Müşteri PWA (QR → menü → ödeme)
-│   ├── restaurant-dashboard/  # Restoran yönetim paneli
-│   ├── api/                   # Backend (Fastify + Postgres)
-│   └── print-bridge/          # Raspberry Pi / ağ yazıcısı ajanı
+│   ├── customer-pwa/           # Müşteri PWA (QR → menü → ödeme)
+│   ├── api/                    # Gateway (Fastify thin BFF)
+│   └── print-bridge/           # On-prem: Raspberry Pi / ağ yazıcısı ajanı
 ├── packages/
-│   ├── shared/                # Ortak tipler, şemalar, util
-│   ├── pos-adapters/          # SambaPOS, Adisyo, Generic Printer vb.
-│   ├── payment/               # iyzico / PayTR adapter'ları
-│   └── efatura/               # e-Arşiv entegratörleri (Foriba, Uyumsoft)
-├── infra/                     # Docker Compose, migration, CI
-└── docs/                      # Mimari, ADR, sunumlar
+│   ├── shared/                 # Ortak TS tipleri, şemalar, util
+│   └── pos-adapters/           # Segment B: SambaPOS, Adisyo, Local Agent vb.
+├── infra/
+│   ├── docker-compose.yml      # Dev: Postgres + Redis + Adminer
+│   └── odoo/
+│       └── docker-compose.yml  # Dev: Odoo 17 + Postgres + Redis
+└── docs/                       # PRODUCT, ROADMAP, ARCHITECTURE, ADR, vb.
 ```
 
-## Geliştirme ortamı
+Restoran paneli **Odoo native** (ADR-0009). Müşteri PWA TS/React'te kalır (ADR-0008). İş mantığı Python tarafında (Odoo), gateway araya thin BFF olarak giriyor.
 
-**Gereklilikler:** Node.js ≥ 20, Docker, npm ≥ 10.
+## Geliştirme
+
+**Gereklilikler:** Node.js ≥ 20, Docker, npm ≥ 10, Python 3.11 (opsiyonel, modül debug için).
+
+Tam akış: [docs/DEV_SETUP.md](./docs/DEV_SETUP.md).
 
 ```bash
-# Bağımlılıklar
 npm install
-
-# Docker ile geliştirme altyapısı (Postgres, Redis)
-docker compose -f infra/docker-compose.yml up -d
-
-# Tüm uygulamaları watch modda çalıştır
-npm run dev
-
-# Sadece bir uygulamayı çalıştır
-npm run dev --workspace apps/api
+docker compose -f infra/odoo/docker-compose.yml up -d
+npm run dev -w @hashtap/api
+npm run dev -w @hashtap/customer-pwa
 ```
-
-## Mimari özeti
-
-İki taraf:
-- **Müşteri tarafı:** PWA — React + Vite. Service worker, offline sepet, Apple/Google Pay.
-- **Restoran tarafı:** yönetim paneli (React) + backend (Fastify) + POS adapter'ları.
-
-Üç entegrasyon:
-- **POS/ERP:** `packages/pos-adapters` altında her POS için ayrı adapter. Hiçbiri tutmuyorsa `print-bridge` ile doğrudan ESC/POS yazıcısına basılır.
-- **Ödeme:** `packages/payment` — iyzico subMerchant (para doğrudan restoranın hesabına).
-- **e-Arşiv:** `packages/efatura` — restoranın mevcut entegratörüne ayak uyduran adapter seti.
-
-Detay: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 
 ## Durum
 
-Faz 0 (iskelet). MVP planı için [docs/hashcash.md](./docs/hashcash.md) bölüm 8.
+Faz 1 (Odoo + modül iskeleti). Detay: [docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ## Lisans
 
-Dahili proje. Tüm hakları saklıdır.
+Dahili proje. Odoo 17 Community Edition üzerinde inşa edilmiştir (LGPLv3).

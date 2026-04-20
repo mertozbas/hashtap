@@ -1,0 +1,63 @@
+version: "3.9"
+
+# Dev stack: Odoo 17 + dedicated Postgres + Redis (queue_job backend).
+# Main repo docker-compose.yml (./infra/docker-compose.yml) is for non-Odoo
+# services (eski dev DB + adminer). Bu dosya Odoo'ya özel; iki compose
+# ayrı ayrı yönetiliyor ki Odoo'yu kapatıp gateway-only dev yapabilelim.
+
+services:
+  odoo-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: postgres
+    volumes:
+      - odoo_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  odoo:
+    image: odoo:17
+    restart: unless-stopped
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    environment:
+      HOST: odoo-db
+      USER: odoo
+      PASSWORD: odoo
+    command: >-
+      odoo
+      --dev=all
+      --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
+      --db-filter=^%d$$
+    volumes:
+      - ../../odoo-addons:/mnt/extra-addons
+      - odoo_data:/var/lib/odoo
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+    ports:
+      - "8069:8069"
+      - "8072:8072"  # longpolling
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - odoo_redis:/data
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "8025:8025"  # web UI
+      - "1025:1025"  # SMTP
+
+volumes:
+  odoo_pg:
+  odoo_data:
+  odoo_redis:

@@ -1,0 +1,11 @@
+@import "./variables";
+
+// Navbar brand placeholder — logo dosyası eklenene kadar metin olarak gösteriyoruz.
+.o_hashtap_navbar {
+  .o_main_navbar_title::before {
+    content: "HashTap";
+    font-weight: 700;
+    color: $hashtap-accent;
+    margin-right: 0.5rem;
+  }
+}

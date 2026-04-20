@@ -1,40 +1,33 @@
-# @hashtap/api
+# @hashtap/api — Gateway
 
-Backend — Fastify + TypeScript + Postgres (Drizzle ORM).
+Customer PWA ile per-tenant Odoo arasındaki **thin BFF**.
 
 ## Sorumluluklar
 
-- Müşteri PWA ve restoran paneline HTTP + WebSocket arayüzü
-- Tenant (restoran) yönetimi, multi-tenant veri izolasyonu
-- Sipariş yaşam döngüsü orkestrasyonu (`src/domain/order-lifecycle.ts`)
-- POS adapter'larını çağırma (`@hashtap/pos-adapters`)
-- Ödeme başlatma + webhook doğrulama (`@hashtap/payment`)
-- e-Arşiv fiş tetikleme (`@hashtap/efatura`)
+- Tenant slug → Odoo DB resolution
+- PWA isteklerini Odoo controller'larına proxy'lemek
+- Rate limit, CORS, helmet, request şema doğrulaması
+- (İleride) JWT/QR token doğrulama, idempotency
 
-## Çalıştırma
+## Sorumluluğu olmayan
 
-```bash
-# İlk kurulum
-cp ../../.env.example .env
-docker compose -f ../../infra/docker-compose.yml up -d
-npm run db:migrate
+- Sipariş state machine — Odoo içindeki `hashtap_pos` tutar
+- DB şeması — gateway stateless, Odoo otoritedir
+- iyzico / e-Arşiv çağrıları — Odoo modülünde (`services/iyzico_client.py`, `services/earsiv_client.py`)
 
-# Geliştirme
-npm run dev
+## Ortam değişkenleri
+
+| key | default | açıklama |
+| --- | --- | --- |
+| `API_PORT` | 4000 | Fastify dinleme portu |
+| `ODOO_BASE_URL` | `http://localhost:8069` | Odoo upstream |
+| `ODOO_TENANT_RESOLVER` | `static` | `static` (dev) \| `registry` (prod) |
+| `ODOO_STATIC_DB` | `demo` | resolver=static iken kullanılan DB |
+
+## Dev
+
+```sh
+npm run dev -w @hashtap/api
 ```
 
-## Klasörler
-
-```
-src/
-├── config/         # env, logger
-├── routes/         # HTTP handler'ları, prefix başına tek dosya
-├── domain/         # saf iş mantığı, tarafsız (framework'süz)
-├── db/             # Drizzle schema + migration'lar
-├── adapters/       # dış sistem entegrasyonları wrapper'ları
-└── index.ts        # bootstrap
-```
-
-## Test
-
-Unit testler domain katmanında (framework'süz). Entegrasyon testleri testcontainer ile gerçek Postgres.
+`docs/DEV_SETUP.md` tam akış için.

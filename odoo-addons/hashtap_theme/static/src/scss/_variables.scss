@@ -1,0 +1,11 @@
+// HashTap renk paleti. Bu dosya hem backend hem frontend asset bundle'ına
+// girer; Odoo'nun Bootstrap değişkenleri üzerine binmemek için `!default`
+// kullanmıyoruz, sadece brand token'ları tanımlıyoruz.
+
+$hashtap-primary:   #1f1b2e;  // koyu mor, placeholder
+$hashtap-accent:    #ff7a00;  // turuncu, placeholder
+$hashtap-bg:        #fafaf7;  // off-white
+$hashtap-text:      #222222;
+
+// Odoo'nun kendi değişkenleri ile uyum (o-brand-odoo vb.) WHITE_LABEL.md
+// içindeki checklist'ten geçildikçe burada override edilecek.

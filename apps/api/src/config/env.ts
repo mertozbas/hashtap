@@ -5,10 +5,9 @@ const schema = z.object({
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
   API_PORT: z.coerce.number().default(4000),
   API_PUBLIC_URL: z.string().url().default('http://localhost:4000'),
-  DATABASE_URL: z.string().min(1),
-  REDIS_URL: z.string().min(1),
-  JWT_SECRET: z.string().min(16),
-  SESSION_SECRET: z.string().min(16),
+  ODOO_BASE_URL: z.string().url().default('http://localhost:8069'),
+  ODOO_TENANT_RESOLVER: z.enum(['static', 'registry']).default('static'),
+  ODOO_STATIC_DB: z.string().default('demo'),
 });
 
 export const env = schema.parse(process.env);
