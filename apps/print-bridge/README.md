@@ -1,10 +1,12 @@
 # @hashtap/print-bridge
 
-POS'u olmayan (veya entegrasyon için hazır olmayan) işletmelerde mutfak yazıcısını besleyen küçük Node ajanı.
+POS'u olmayan (veya entegrasyon için hazır olmayan) işletmelerde mutfak yazıcısını besleyen küçük Node ajanı. On-prem çalışır — Raspberry Pi gibi lokal bir cihaza kurulur.
 
 ## Ne yapar
 
-HashTap API'ye WebSocket ile bağlanır; `order.paid` event'i gelince sipariş fişini ESC/POS ile yazıcıya basar ve `order.printed` onayı gönderir.
+Odoo `hashtap_pos` modülü sipariş `kitchen_fired` event'ini yayınlayınca ajan fişi ESC/POS üzerinden yazıcıya basar ve `order.printed` onayını geri gönderir. Segment A'daki (HashTap native, ama fiziksel KDS ekranı olmayan) restoranların default yazıcı çözümü.
+
+Segment B (mevcut POS'u olan restoran) akışında adapter `pos_restaurant`'ın kendi yazıcısına düşürdüğü için print-bridge devre dışı kalabilir.
 
 ## Donanım
 
@@ -32,4 +34,4 @@ Prodüksiyonda `systemd` servisi olarak açılması önerilir.
 
 ## Durum
 
-İskele. Yeniden bağlanma, offline kuyruk, sağlık metrikleri daha sonra eklenecek.
+İskele. Odoo tarafında event kaynağı oluşunca protokol netleşecek (ROADMAP Faz 6). Yeniden bağlanma, offline kuyruk, sağlık metrikleri daha sonra eklenecek.

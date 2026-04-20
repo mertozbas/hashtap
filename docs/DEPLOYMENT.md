@@ -50,7 +50,7 @@ Bu doküman HashTap'in prod altyapısının hedef topolojisini ve deploy pratikl
 - **Gateway:** 2 instance, arka arkaya load balance.
 - **Odoo worker pool:** 2 instance; her biri aynı DB havuzunu görür, DB router subdomain'e göre seçer.
 - **Postgres:** Primary + replica (streaming replication). Replica sadece backup kaynağı ve acil failover için.
-- **Redis:** 1 instance (pg-boss + rate limit + session cache).
+- **Redis:** 1 instance (queue_job backend + rate limit + session cache).
 - **Nesne depolama:** Hetzner S3-uyumlu bucket (menü fotoğrafı, fiş PDF, yedek).
 
 ### 2.2 Ölçekleme yolu
@@ -90,7 +90,7 @@ Bu doküman HashTap'in prod altyapısının hedef topolojisini ve deploy pratikl
 
 ### 4.4 Redis
 - `maxmemory 1gb`, `maxmemory-policy allkeys-lru`.
-- pg-boss için persistence gerekli: AOF on.
+- queue_job / rate limit için persistence gerekli: AOF on.
 
 ### 4.5 Nginx / Caddy
 - TLS sonlandırıcı + subdomain router.

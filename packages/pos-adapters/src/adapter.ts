@@ -1,9 +1,10 @@
 /**
- * POS adapter sözleşmesi (docs/hashcash.md §4).
+ * POS adapter sözleşmesi (docs/integrations/POS_ADAPTERS.md).
  *
- * Her bağlantı yöntemi ayrı bir adapter; üst katman hangisinin altta ne yaptığını
- * bilmez. Adapter'lar idempotent olmalı: aynı sipariş iki kez push edilirse aynı
- * pos_order_id dönmeli, kopya yaratılmamalı.
+ * Segment B: mevcut POS'u olan restoranlar. Odoo modülü (`hashtap_pos`)
+ * siparişi oluşturduktan sonra ilgili adapter'ı çağırır. Üst katman hangi
+ * adapter'ın altta ne yaptığını bilmez. Adapter'lar idempotent olmalı:
+ * aynı sipariş iki kez push edilirse aynı pos_order_id dönmeli.
  */
 
 import type { MenuSnapshot, Order, PosConnectionType } from '@hashtap/shared';

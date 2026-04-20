@@ -22,11 +22,7 @@
       "@hashtap/shared": ["packages/shared/src"],
       "@hashtap/shared/*": ["packages/shared/src/*"],
       "@hashtap/pos-adapters": ["packages/pos-adapters/src"],
-      "@hashtap/pos-adapters/*": ["packages/pos-adapters/src/*"],
-      "@hashtap/payment": ["packages/payment/src"],
-      "@hashtap/payment/*": ["packages/payment/src/*"],
-      "@hashtap/efatura": ["packages/efatura/src"],
-      "@hashtap/efatura/*": ["packages/efatura/src/*"]
+      "@hashtap/pos-adapters/*": ["packages/pos-adapters/src/*"]
     }
   }
 }

@@ -1,4 +1,14 @@
-# HashCash — QR Sipariş & Ödeme Platformu
+# HashCash — QR Sipariş & Ödeme Platformu (v0 arşiv)
+
+> **Not:** Bu, projenin ilk vizyon + iş planı taslağıdır. İsim "HashCash" → **HashTap** oldu; mimari Odoo-tabanlı modül + white-label'a evrildi (ADR-0004, ADR-0005). Güncel ürün ve yol haritası için:
+>
+> - [docs/PRODUCT.md](./docs/PRODUCT.md) — güncel ürün tanımı
+> - [docs/ROADMAP.md](./docs/ROADMAP.md) — W1–W22 plan
+> - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — güncel mimari
+>
+> Bu doküman tarihsel referans olarak tutuluyor — bazı kararlar (ör. kendi backend'imizi yazmak) artık geçerli değil.
+
+---
 
 > Müşteri masada QR okutur → menüden seçer → uygulama içinden öder → sipariş otomatik olarak restoranın mevcut POS/ERP sistemine düşer → adisyon/fiş restoranın yazıcısından çıkar → para doğrudan restoranın hesabına geçer.
 

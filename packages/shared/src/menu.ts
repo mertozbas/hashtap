@@ -1,11 +1,9 @@
 import { z } from 'zod';
 
 /**
- * Menü senkronizasyonu için katmanlı sahiplik modeli (docs/hashcash.md §7).
- * POS = iş yönetimi gerçeği. HashTap = sunum gerçeği.
- *
- * Bir HashTap ürünü 1+ POS ürünüyle eşleşir (pos_link).
- * Fiyat çakışması durumunda POS fiyatı kazanır, müşteriye onay gösterilir.
+ * Segment B (mevcut POS'u olan restoran) için menü sahiplik modeli —
+ * detay docs/integrations/POS_ADAPTERS.md. POS otorite, HashTap sunum katmanı.
+ * Segment A'da (Odoo native) bu tipler gateway ↔ Odoo sınırında kullanılır.
  */
 
 export const PosLinkSchema = z.object({
