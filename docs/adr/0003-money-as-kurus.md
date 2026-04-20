@@ -1,7 +1,9 @@
 # ADR-0003 — Para birimi integer (Kurus)
 
-- Durum: kabul
+- Durum: kabul (kapsam daraltıldı 2026-04-20 — Odoo-tabanlı mimariye uyum)
 - Tarih: 2026-04-20
+
+> **Kapsam notu:** ADR-0004 sonrası iş mantığının çoğu Odoo'ya taşındı. Odoo para alanlarını kendi `fields.Monetary` (decimal) tipiyle yönetir — bu kural Odoo içinde **geçerli değil**. `Kurus` tipi sadece **TS katmanında** (gateway + customer-pwa) + Odoo ↔ dış dünya sınırındaki serileştirmede kullanılır. Gateway'in Odoo'ya ve PWA'ya Kurus olarak geçip aldığı değer, Odoo içinde decimal'e dönüştürülür.
 
 ## Bağlam
 

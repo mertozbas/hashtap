@@ -1,11 +1,13 @@
 # ADR-0001 — Monorepo (npm workspaces)
 
-- Durum: kabul
+- Durum: kabul (revize edildi 2026-04-20 — Odoo-tabanlı mimariye uyum)
 - Tarih: 2026-04-20
+
+> **Revizyon notu:** ADR-0004 ile Odoo-tabanlı mimariye geçildi. TS tarafındaki uygulama sayısı 4'ten 2'ye düştü (customer-pwa + gateway api). Kalan iki TS uygulaması için monorepo kararı hâlâ geçerli — paylaşılan `packages/shared` tipleri ve `packages/pos-adapters` Segment B için kullanılıyor. `odoo-addons/` dizini aynı repoda ama npm workspaces kapsamı dışında.
 
 ## Bağlam
 
-HashTap birbirine sıkı bağlı 4 uygulamadan oluşuyor: müşteri PWA'sı, restoran paneli, API, print-bridge. Bu uygulamalar aynı sipariş/menü/ödeme tiplerini paylaşıyor. Ayrı reposlarda geliştirmek her tip değişikliğinde dört ayrı PR zinciri demek — küçük ekipte pahalı.
+HashTap başlangıçta birbirine sıkı bağlı 4 TS uygulamadan oluşacaktı: müşteri PWA'sı, restoran paneli, API, print-bridge. Bu uygulamalar aynı sipariş/menü/ödeme tiplerini paylaşıyor. Ayrı reposlarda geliştirmek her tip değişikliğinde dört ayrı PR zinciri demek — küçük ekipte pahalı.
 
 ## Seçenekler
 
