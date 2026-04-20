@@ -1,0 +1,11 @@
+:root {
+  --hashtap-ink: #0b2545;
+  --hashtap-accent: #f4a261;
+  --hashtap-bg: #ffffff;
+  --hashtap-muted: #5a6a80;
+  font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--hashtap-ink);
+}
+
+body { margin: 0; background: var(--hashtap-bg); }
+main { max-width: 720px; margin: 0 auto; padding: 1rem; }

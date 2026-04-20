@@ -1,0 +1,31 @@
+:root {
+  --hashtap-ink: #0b2545;
+  --hashtap-accent: #f4a261;
+  --hashtap-bg: #f7f8fa;
+  --hashtap-panel: #ffffff;
+  --hashtap-muted: #5a6a80;
+  font-family: system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--hashtap-ink);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--hashtap-bg); }
+
+.shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+aside {
+  background: var(--hashtap-ink);
+  color: #fff;
+  padding: 1.5rem 1rem;
+}
+aside h1 { margin: 0 0 2rem; font-size: 1.4rem; letter-spacing: 0.04em; }
+aside nav { display: flex; flex-direction: column; gap: 0.25rem; }
+aside nav a {
+  color: #cfd8e6;
+  text-decoration: none;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+}
+aside nav a.active, aside nav a:hover { background: rgba(244,162,97,0.15); color: #fff; }
+
+section { padding: 2rem; }

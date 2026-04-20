@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@hashtap/shared": ["packages/shared/src"],
+      "@hashtap/shared/*": ["packages/shared/src/*"],
+      "@hashtap/pos-adapters": ["packages/pos-adapters/src"],
+      "@hashtap/pos-adapters/*": ["packages/pos-adapters/src/*"],
+      "@hashtap/payment": ["packages/payment/src"],
+      "@hashtap/payment/*": ["packages/payment/src/*"],
+      "@hashtap/efatura": ["packages/efatura/src"],
+      "@hashtap/efatura/*": ["packages/efatura/src/*"]
+    }
+  }
+}

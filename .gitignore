@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# build outputs
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+logs/
+*.log
+npm-debug.log*
+
+# coverage
+coverage/
+.nyc_output/
+
+# editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# db / local data
+*.sqlite
+*.db
+data/
+pg-data/
+
+# runtime
+.cache/
+.turbo/
+.parcel-cache/
+
+# vite
+dist-ssr/
+*.local
