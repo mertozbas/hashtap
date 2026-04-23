@@ -4,7 +4,7 @@ Bu doküman, HashTap'i bir restorana kuracak IT ekibinin adım adım
 başvuracağı rehberdir. Saha kurulumunun sıfır an'ından teslim anına
 kadar her aşamayı kapsar.
 
-Hedef kitle: HashTap IT/kurulum ekibi, bayi teknik ekipleri.
+Hedef kitle: HashTap IT/kurulum ekibi.
 
 İlgili dokümanlar:
 - `ARCHITECTURE.md` — teknik mimari

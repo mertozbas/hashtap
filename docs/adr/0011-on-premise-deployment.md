@@ -164,7 +164,7 @@ içindir.
 - Veri egemenliği argümanı güçlenir.
 
 **Olumsuz:**
-- Kurulum lineer ölçeklenir: bayi ağı + installer otomasyonu kritik.
+- Kurulum lineer ölçeklenir: saha ekibi büyütme + installer otomasyonu kritik.
 - Saha-destek altyapısı gerekli.
 - Donanım sürümlülüğü riskini yönetmek gerek.
 - Güncelleme push mekanizması karmaşıklığı yeniden düşünülmeli.

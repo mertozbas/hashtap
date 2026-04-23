@@ -14,9 +14,7 @@ Her faz için üç bölüm: **hedef, çıktı kriterleri, riskler**. Bir fazın 
 > provisioning → mimari sadeleştirme + installer CLI). **Faz 11-15**
 > yeni eklendi: remote support altyapısı, design system, KDS refresh,
 > cashier uygulaması, waiter uygulaması. Faz 0-7.5 çıktıları aynen
-> korunuyor. **B2B partner kanalı** ayrı ticari iş kolu olarak
-> `~/hashtap-b2b/` klasöründe yürütülür; ürün yol haritasının parçası
-> değildir.
+> korunuyor.
 
 ## Faz 0 — İskele (W0, bitti)
 
@@ -460,12 +458,6 @@ Detay: `apps/WAITER.md` §9.
 - AI menü önerisi.
 - **HashTap markalı donanım bundle'ı** — iş modeli faz 2 hedefi
   (`BUSINESS_MODEL.md` §6).
-
-> **B2B Partner Programı not:** B2B reseller kanalı ayrı bir ticari
-> iş kolu olarak `~/hashtap-b2b/` klasöründe yürütülür. Teknik yol
-> haritasının parçası değil (ayrı tempoyla, ayrı takımla,
-> sözleşme-odaklı). Ürün tarafındaki gelişme (Faz 10 pilot) bittiğinde
-> paralel kanal olarak aktive edilebilir.
 
 ## Özet çizelgesi
 

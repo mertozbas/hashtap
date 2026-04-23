@@ -65,8 +65,6 @@ backend, payment, e-Arşiv, KDS, white-label).
 | **14** | **Cashier uygulaması** | ⏳ | `apps/cashier/` — kasa için React PWA (detay: `apps/CASHIER.md`). |
 | **15** | **Waiter uygulaması** | ⏳ | `apps/waiter/` — garson için mobile-first React PWA (detay: `apps/WAITER.md`). |
 
-> **Not:** B2B partner programı ayrı bir iş kolu olarak `~/hashtap-b2b/` klasöründe yürütülür. Ana teknik yol haritasının parçası değildir.
-
 Notlar:
 
 - **Faz 6a ve 7.5 ROADMAP.md §6/§7 içindeki bölümlere karşılık gelir**; 6a,
@@ -149,7 +147,7 @@ Faz 0 iskelet hali. Odoo controllerları doğrudan PWA ile konuşabiliyor
 
 | Tarih | Değişiklik | PR/commit notu |
 |---|---|---|
-| 2026-04-23 | **B2B iş kolu ayrıldı:** Partner (reseller) programı ana repo'dan çıkarıldı ve `~/hashtap-b2b/` klasörüne taşındı. Fiyatlandırma revize edilecek (son kullanıcı fiyatlarıyla uyumlu partner margin'i sağlayan tier tablosu). `BUSINESS_MODEL.md` demo ile hizalandı (A:80K / B:120K / C:200K / D:350K + 1.500 TL/ay bakım). | doc only |
+| 2026-04-23 | **Fiyatlandırma demo ile hizalandı:** `BUSINESS_MODEL.md` §3.3 son kullanıcı paketleri A:80K / B:120K / C:200K / D:350K + 1.500 TL/ay bakım. Eski düşük aralıklar (25-120K) temizlendi. | doc only |
 | 2026-04-23 | **Doküman temizliği:** Eski SaaS/multi-tenant dokümanları silindi (`MULTI_TENANCY.md`, `DEPLOYMENT.md`, eski `ARCHITECTURE.md`). `ON_PREMISE_ARCHITECTURE.md` → canonical `ARCHITECTURE.md` rename. `DEV_SETUP.md` ve `SECURITY.md` on-premise'a göre yeniden yazıldı. `PRODUCT.md` + `hashtap-sunum.md` fiyatlandırma güncellendi. | doc only |
 | 2026-04-23 | **Stratejik pivot:** SaaS → on-premise tek-kiracı. Dokümantasyon seti yazıldı (`BUSINESS_MODEL.md`, ADR-0011, `ARCHITECTURE.md`, `INSTALLATION_PLAYBOOK.md`, `OPERATIONS.md`, `DESIGN_SYSTEM.md`, `apps/CASHIER.md`, `apps/WAITER.md`). | doc only, kod değişmedi |
 | 2026-04-21 | KDS bug fix: `modifier.mapped("name")` → `name_tr` | `hashtap_pos/controllers/kds.py:40` |

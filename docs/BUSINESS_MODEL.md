@@ -15,10 +15,6 @@ Son güncelleme: 2026-04-23.
 - `OPERATIONS.md` — kurulum sonrası destek, güncelleme, yedekleme
 - `PRODUCT.md` — ürün tanımı (pivot sonrası güncellenmiş bölümleri)
 
-**Not:** B2B partner (reseller) programı bu dokümanın kapsamı dışındadır.
-Ayrı bir iş kolu olarak `~/hashtap-b2b/` klasöründe işlenir (ticari
-gizlilik + ayrı hedef kitle).
-
 ## 1. Yönetici özeti
 
 HashTap, Türkiye restoran pazarına **"gel, kur, teslim et, destekle"**
@@ -70,9 +66,10 @@ yardımcı servisler bizim tarafımızda durur).
   KVKK uyumu.
 - **Mimari sadeleşme.** Multi-tenancy tamamen kaldırılıyor. Her kurulum
   tek kiracılı. Kod tabanı sadeleşiyor, bug yüzeyi daralıyor.
-- **Türk pazarına oturmuş satış modeli.** Bayi/saha-satış ağı kurmak
-  bilinen bir yol; bize SaaS'ın gerektirdiği dijital pazarlama + self-serve
-  onboarding + ücretsiz deneme ekonomisini kurmaktan kolay.
+- **Türk pazarına oturmuş satış modeli.** Saha-odaklı satış + on-premise
+  kurulum + yıllık bakım modeli Türkiye POS pazarında oturmuş bir
+  yaklaşım; bize SaaS'ın gerektirdiği dijital pazarlama + self-serve
+  onboarding + ücretsiz deneme ekonomisini kurmaktan daha kolay.
 - **Sonraki aşamada donanım bundle'ı.** "HashTap Kasa Pro + yazıcı +
   tablet" paketi olarak satılabilir. Donanım marjı ilave gelir akışı.
 
@@ -80,7 +77,7 @@ yardımcı servisler bizim tarafımızda durur).
 
 - **Kurulum lineer ölçekleniyor.** Her restorana IT ekibi gidiyor; 1000
   restoran = 1000 kurulum. Bu yükü azaltmak için installer CLI
-  otomatikleştirilmiş + bayi ağı kurulmalı.
+  otomasyonu ve saha ekibinin ölçeklenmesi kritik.
 - **Güncelleme sorumluluğu bizde.** Bug fix çıktıktan sonra 500 restoran
   donanımındaki Docker image'ların otomatik pull'u + rollback mekanizması
   gerekli (detay: `OPERATIONS.md` §4).
@@ -103,7 +100,7 @@ Bu yüklerin her birinin net çözümü `OPERATIONS.md` ve
 ### 3.1 Satış ekibi profili
 
 - Türkiye restoran pazarına hâkim, POS/muhasebe satışı tecrübesi olan
-  bayiler veya iç satış ekibi.
+  iç satış ekibi.
 - Saha satışı (restorana gidip demo) birincil kanal.
 - Demo için taşınabilir bir kurulum (laptop + tablet + küçük yazıcı +
   QR menü kartı) ile gösterim.
@@ -153,7 +150,6 @@ yazılım kullanım hakkı restoranda kalır.
    üretici → HashTap → restoran zincirindeki fark.
 5. **Ek modül / özellik satışı** (faz 2+) — sadakat programı, delivery
    entegrasyonu, AI menü önerisi gibi şeyler modüler eklenti olarak.
-6. **B2B partner kanalı** (ayrı iş kolu) — bkz `~/hashtap-b2b/`.
 
 ### 3.4 Hedef satış rakamları (ilk 12 ay, pilot sonrası)
 
@@ -168,9 +164,6 @@ yazılım kullanım hakkı restoranda kalır.
 
 Bu muhafazakar tahminler; satış ekibi tam oturursa yukarı kıvrılabilir.
 Toplam 12 aylık hedef: **~8-15M TL doğrudan satış**.
-
-B2B partner kanalından gelecek ek ciro ayrı iş kolunun projeksiyonudur
-(`~/hashtap-b2b/`).
 
 ## 4. Kurulum süreci (IT ekibi)
 
@@ -321,8 +314,8 @@ Donanım bundle'ına geçmek için gerekenler:
 | Kurulum kalitesiz, restoran memnuniyetsiz | Orta | Yüksek | Kabul test checklist'i + ilk 72 saat yakın izleme |
 | Güncellemede prod'da bug | Orta | Yüksek | Önce iç test → 1-2 gönüllü restoran canary → kalan → rollback altyapısı |
 | Restoran PC'si kapandı/bozuldu, veri gitti | Düşük | Yüksek | Gecelik şifreli S3/B2 yedek, RTO < 4 saat |
-| IT ekibi ölçekleme sorunu | Orta | Orta | Bayi ağı + installer CLI otomasyonu + video eğitim |
-| Türkiye'de satış kanal rekabeti (SambaPOS bayileri) | Yüksek | Orta | Modern UX + tek paket avantajıyla farklılaşma |
+| IT ekibi ölçekleme sorunu | Orta | Orta | Installer CLI otomasyonu + saha ekibi yetiştirme + video eğitim |
+| Türkiye'de satış kanal rekabeti | Yüksek | Orta | Modern UX + tek paket avantajıyla farklılaşma |
 | Donanım fiyat dalgalanması (faz 2) | Orta | Orta | Birden çok tedarikçi, döviz kuru hedge |
 | KVKK denetimi | Düşük | Yüksek | Yedek şifreleme + erişim logları + sözleşme maddeleri sağlam |
 | Restoran "abonelik mi?" diye itiraz | Düşük | Düşük | Satış konumlandırması net: "tek seferlik + yıllık bakım" |
@@ -379,8 +372,6 @@ Ayrıntı: `ROADMAP.md` (pivot sonrası güncellenmiş).
 
 - **Fiyatlama nihai:** Yukarıdaki rakamlar çalışma tahmini; pilot
   sonrası pazar araştırmasıyla kalibre edilecek.
-- **Bayi yapısı:** Doğrudan saha satış mı, bayi ağı mı? İlk 10-20
-  kurulumda kendimiz yapıp süreci öğrenelim, sonra bayiye aç.
 - **Sözleşme şablonları:** Hukuki hazırlık gerekli — yazılım lisansı,
   bakım sözleşmesi, KVKK veri işleme eki, SLA.
 - **Faturalandırma:** Kurulum tek fatura mı, taksitli mi? Bakım yıllık
