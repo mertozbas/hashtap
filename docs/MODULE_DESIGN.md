@@ -2,6 +2,12 @@
 
 Bu doküman Odoo 17 üstüne yazacağımız `hashtap_pos` modülünün iç yapısını tanımlar. Okunabilmesi için Odoo modül sisteminin temel kavramlarına (model, view, controller, manifest, hook) aşina olunduğu varsayılır; aşina değilseniz `DEV_SETUP.md` başlayış için yeterli.
 
+> **2026-04-23 pivot notu:** Proje on-premise tek-kiracı modele geçti
+> (`adr/0011-on-premise-deployment.md`). Aşağıdaki bazı kısımlar
+> (tenant_slug URL şeması, multi-tenant uç gerekçesi) eski cloud modelden
+> kalıntıdır — canonical API şemaları için `ARCHITECTURE.md` §3 ve
+> `DATA_MODEL.md`'ye bakın.
+
 > **Güncel uygulama 2026-04-21.** Aşağıdaki yapı planlama dokümanıdır;
 > gerçek modüldeki bazı kararlar değişti. En önemli sapmalar:
 >
@@ -251,7 +257,7 @@ Her grup hem Odoo'nun kendi model access'lerini hem `hashtap_pos`'un kayıt kura
 - `hashtap.menu.item`: yazma yetkisi sadece manager + kitchen chef grubu (menü yönetimi).
 
 ### 7.3 Public controller güvenliği
-- Her public uç tenant_slug içerir; kullanıcı başka tenant'a geçemez (gateway doğrular ama biz de kontrol ederiz).
+- On-premise modelde tek kurulum = tek restoran; tenant_slug pivot sonrası gereksiz (Faz 8'de kaldırılacak).
 - Sepet üzerinde fiyat manipülasyonu imkansız (§5.2 kuralı).
 - `order_access_token` PWA'ya sipariş oluştururken verilir; sipariş durumu sorgusu için zorunlu.
 
@@ -286,7 +292,8 @@ Kapsam hedefi: servis katmanı %90+, controller %70+, ORM extension'ları kovera
 
 ## 11. Eklenmemiş konular (bilerek)
 
-- **Çoklu şirket:** Odoo'nun `res.company` ayrımı var; HashTap'in "çoklu konsept" modeli bunun üstüne oturacak ama MVP'de tek şirket. Faz 7+ konusu.
+- **Çoklu şirket / çoklu şube:** Odoo'nun `res.company` ayrımı var; zincir restoranlar için ileride. MVP'de her kurulum tek şirket (tek restoran).
 - **Sadakat / kampanya:** MVP dışı.
 - **Rezervasyon:** Modülde yer yok; gelecek modül.
-- **Mobil kasiyer uygulaması:** Odoo'nun POS client'ı kullanılabilir; HashTap'in ayrı bir mobil "kasa" uygulaması MVP'de yok.
+- **Kasiyer uygulaması:** HashTap'in kendi Cashier React app'i yapılacak (Faz 14). Odoo'nun POS client'ı kullanılmıyor; on-premise dokunmatik için özel UI. Detay: `apps/CASHIER.md`.
+- **Garson uygulaması:** Faz 15. Detay: `apps/WAITER.md`.

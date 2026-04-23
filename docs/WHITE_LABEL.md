@@ -25,8 +25,8 @@ Son kullanıcı (restoran sahibi, personeli) "HashTap POS kullanıyorum" der. "O
 - "Sign in with Google" gibi SSO butonlarını ayarlardan toggle — MVP'de kapalı.
 
 ### 3.2 Veritabanı seçici (`/web/database/*`)
-- Multi-DB seçici normalde burada görünür. Biz DB-per-tenant'la subdomain'den doğru DB'ye route ediyoruz; bu sayfa tamamen **gizli** olmalı (nginx'te engellenir + Odoo config `list_db=False`).
-- Manager sayfası (`/web/database/manager`): master password ile erişilir; prod'da nginx'te IP whitelist. Müşterinin görmesine gerek yok.
+- Multi-DB seçici normalde burada görünür. On-premise tek-kiracı modelde tek bir `hashtap` DB'si var, seçici gereksiz — tamamen **gizli** (`db_filter = ^hashtap$` + Odoo config `list_db=False`).
+- Manager sayfası (`/web/database/manager`): master password ile erişilir; Caddy'de LAN-only; müşterinin görmesine gerek yok.
 
 ### 3.3 App switcher (üst sol menü)
 - Normalde "Discuss, CRM, Sales, Accounting..." ikonları.

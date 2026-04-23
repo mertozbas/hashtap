@@ -2,9 +2,14 @@
 
 Bu doküman ne inşa ettiğimizi, kim için inşa ettiğimizi ve hangi sınırları çizdiğimizi kayıt altına alır. Teknik tercihler değil iş kararları buradadır.
 
+> **🚨 2026-04-23 Pivot Notu:** HashTap iş modeli pivotu yaptı. **SaaS
+> aboneliği satmıyoruz;** her restorana fiziksel kurulum + yıllık
+> bakım modeliyle satıyoruz. §1, §5 ve §6 bu pivot'u yansıtacak şekilde
+> güncellenmiştir. Detay: `BUSINESS_MODEL.md`.
+
 ## 1. Bir cümlede
 
-**HashTap, restoranların mevcut POS'larıyla birlikte ya da onun yerine çalışan; müşterinin QR okutup cebinden sipariş verip ödediği, restoran için tam ERP özelliklerini arka planda sağlayan çok kiracılı SaaS.**
+**HashTap, restoranların mevcut POS'larıyla birlikte ya da onun yerine çalışan; müşterinin QR okutup cebinden sipariş verip ödediği, restoran için tam ERP özelliklerini arka planda sağlayan, restoranın kendi donanımında koşan on-premise modern restoran platformu.**
 
 ## 2. Hangi problemi çözüyoruz
 
@@ -58,14 +63,25 @@ Bu doküman ne inşa ettiğimizi, kim için inşa ettiğimizi ve hangi sınırla
 | "Direkt senin banka hesabına" | iyzico subMerchant (facilitator model) |
 | "e-Arşiv otomatik" | Foriba/Uyumsoft adapter, fail-close policy |
 | "Türkçe + İngilizce menü otomatik" | `hashtap_pos` modülü i18n alanları |
-| "Aylık sabit, masa başı değil" | SaaS aboneliği (MRR) |
+| "Tek satın al, kendi mekânında çalışsın" | On-premise kurulum, restoran PC'sinde |
 
 ## 5. Ticari model
 
-- **Aylık abonelik** — masa/ciro/kullanıcı başı değil, sabit paket.
-- **Kurulum ücreti** — tek seferlik, donanım + eğitim + menü yükleme dahil.
-- **Kart komisyonu** — iyzico'nun oranı + küçük bir HashTap payı (facilitator fee). Bu pay ana gelir kaynağı değil, marjinal.
-- **Print-bridge donanımı** — Raspberry Pi + yazıcı dahil paket; ya kurulum ücretine yedir ya ayrıca sat.
+> **Pivot sonrası güncellendi (2026-04-23).** Detay: `BUSINESS_MODEL.md`.
+
+- **Tek seferlik kurulum ücreti** (~25.000-80.000 TL, pakete göre) —
+  birincil gelir akışı. Yazılım lisansı + saha kurulumu + eğitim +
+  ilk yıl bakım dahil.
+- **Yıllık bakım abonelik** (~4.000-12.000 TL) — güncelleme, uzaktan
+  destek, telefon desteği, saha müdahale.
+- **Kart komisyonu (facilitator fee)** — iyzico'nun oranı + küçük bir
+  HashTap payı. Marjinal, ana akım değil.
+- **Donanım bundle marjı** (faz 2 hedefi) — HashTap markalı POS PC +
+  yazıcı + tablet paketi olarak satış.
+
+Eski model ("aylık SaaS abonelik") **reddedildi:** sunucu maliyeti
+HashTap'te, Türkiye restoran pazarının abonelik kültürüne uzaklığı,
+internet bağımlılığı. Pivot gerekçesi: `BUSINESS_MODEL.md` §2.
 
 ## 6. Temel özellik listesi (MVP)
 
@@ -77,7 +93,7 @@ Bu doküman ne inşa ettiğimizi, kim için inşa ettiğimizi ve hangi sınırla
 - [ ] e-Arşiv otomatik fiş.
 - [ ] Çoklu masa yönetimi.
 - [ ] Günsonu Z raporu.
-- [ ] Tenant provisioning (yeni restoran bir saat içinde açılabilir).
+- [ ] IT ekibinin 4-8 saatte kurulumu tamamlayabildiği installer CLI.
 
 ## 7. Kapsam dışı (MVP)
 
@@ -97,7 +113,7 @@ MVP başarılı sayılır eğer:
 2. Haftalık işlem hacmi en az 200 sipariş.
 3. Ödemelerin %95'i iyzico üzerinden başarıyla, %100'ünde e-Arşiv otomatik kesilmiş olur.
 4. Pilot restoran sahibi "bunu diğer şubemde de kullanırım" der ve referans verir.
-5. Sistem provisioning (yeni restoran açma) 60 dakikanın altına iner.
+5. IT ekibi bir restoran kurulumunu (yazılım + donanım bağlantıları + kabul test) 8 saatin altında tamamlayabiliyor.
 
 ## 9. Rekabet ve pozisyonlama
 
@@ -113,6 +129,6 @@ HashTap'in pozisyonu: **"Modern QR deneyimi + Türkiye'ye yerel ERP + tek paket"
 ## 10. Açık sorular
 
 - Kart komisyonu üstüne HashTap payı yasal olarak nasıl alınacak? (Facilitator sözleşmesinde tanımlı olmalı, hukuki doğrulama gerekiyor.)
-- Print-bridge donanımını biz mi stoklayacağız, distribütör mü? — Pilotta kendimiz kurarız, ölçeklenince dağıtım ortağı.
-- Müşteri verileri Türkiye'de mi saklanmalı? (KVKK açısından evet — Hetzner İstanbul / Telekom bulut adayları.)
+- Donanım bundle'ı (faz 2) için tedarikçi stratejisi — Türkiye OEM mi, ithalat mı?
+- Müşteri verisi KVKK: on-premise modelde veri restoranın kendi binasında; HashTap sadece yedek ciphertext'i tutuyor (B2 EU-Central). Yeterli mi? (Detay: `SECURITY.md` §2.3.)
 - Pilot restoran kim? — Bu doküman yazıldığı anda net müşteri yok.

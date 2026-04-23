@@ -1,175 +1,265 @@
 # Güvenlik & Uyumluluk
 
-Bu doküman HashTap'in güvenlik ve yasal uyum pozisyonunu tanımlar: KVKK, PCI kapsamı, kimlik doğrulama, yetkilendirme, secret yönetimi, loglama. "Ne yapıyoruz, ne yapmıyoruz, niye".
+Bu doküman HashTap'in güvenlik ve yasal uyum pozisyonunu tanımlar:
+KVKK, PCI kapsamı, kimlik doğrulama, yetkilendirme, secret yönetimi,
+loglama. "Ne yapıyoruz, ne yapmıyoruz, niye".
+
+On-premise tek-kiracı dağıtım modeline (ADR-0011) göre yazılmıştır.
+
+Son güncelleme: 2026-04-23.
 
 ## 1. Tehdit modeli — özet
 
 ### 1.1 Saldırgan profili
-- **Dış:** İnternet'te random botlar (SQL inject, brute force, DDoS), fırsatçı fraudster'lar (kart testi).
-- **Yarı-dış:** Rakip restoran veya kötü niyetli bir yatırımcı bir kiracının verisine erişmeye çalışabilir.
-- **İç-çalışan:** HashTap ekibinden bir geliştiricinin kazara veya kasten prod verisine erişmesi.
-- **Kiracı-iç:** Bir restoran personeli kendi yetkisinden fazlasına erişmeye çalışabilir.
+
+- **Dış (internet):** İnternet'te random botlar (SQL inject, brute force,
+  kart testi fraud'ları). HashTap kurulumunun ana saldırı yüzeyi
+  Cloudflare Tunnel üzerinden gelen müşteri PWA trafiği + iyzico/Foriba
+  webhook'ları. Port forwarding yok.
+- **Yerel ağ (restoran Wi-Fi'si):** Restoran müşterisi Wi-Fi'ye bağlandığında
+  Cashier / Waiter / KDS ekranlarına ulaşabilir. Bu yüzden staff
+  uygulamalar kimlik doğrulamalı; admin paneli firewall ile LAN-internal.
+- **İç-çalışan (HashTap):** Destek mühendisinin Tailscale üzerinden yaptığı
+  SSH erişimleri loglanır, müşteri onayına bağlanır.
+- **Restoran-iç çalışan:** Garson/mutfak çalışanı kendi rolünün ötesine
+  geçemez (Odoo RBAC + `hashtap.group_*`).
+- **Fiziksel:** Kasa PC'si çalınırsa disk şifreli (LUKS/BitLocker) olmalı.
 
 ### 1.2 Kritik varlıklar
-1. **Ödeme bilgisi** — kartın tam PAN'ı sistemimize girmez (iyzico checkout form). Saklanan sadece last4 + token.
-2. **Müşteri PII** — telefon (opsiyonel), isim (opsiyonel) fiş için.
-3. **Kiracı iş verisi** — menü, fiyat, sipariş, ciro.
-4. **Kiracı kimlik/mali belge** — vergi no, IBAN (iyzico onboarding).
-5. **HashTap master secret'lar** — iyzico API key, Odoo master password.
+
+1. **Ödeme bilgisi** — kartın tam PAN'ı sisteme girmez (iyzico Checkout
+   Form PCI SAQ-A). Saklanan: last4 + token.
+2. **Müşteri PII** — telefon (opsiyonel), isim (B2B fişlerde).
+3. **Restoran iş verisi** — menü, fiyat, sipariş, ciro.
+4. **Restoran kimlik / mali belge** — vergi no, IBAN (iyzico onboarding).
+5. **HashTap ops secret'ları** — iyzico API key (per-restoran),
+   Tailscale ACL, Docker Registry credentials, restic şifreleri.
 
 ### 1.3 En önemli hasarlar
+
 - PCI ihlali (kart verisi sızıntısı) → ticari ölüm + yasal.
-- Kiracı-arası veri sızıntısı → güven kaybı + KVKK cezası.
-- iyzico master secret sızıntısı → tüm kiracıların hesabından para transferi riski.
+- Bir restoranın verisinin başka tarafa sızması → KVKK cezası + güven.
+- HashTap ops VPN'inin (Tailscale) ele geçirilmesi → tüm kurulumlara
+  uzaktan erişim.
+- Restoran PC'sinin fiziksel çalınması / disk imajının sızması → o
+  restoranın verisi.
 
 ## 2. KVKK uyumu
 
 ### 2.1 Veri sorumlusu / işleyen rolleri
-- HashTap her kiracı adına **veri işleyen**. Veri sorumlusu = restoran.
-- Sözleşmede (kiracı onboarding) bu rol netleştirilir. DPA (Data Processing Agreement) imzalanır.
+
+- **Restoran = veri sorumlusu** (müşterisinin verisini toplayan).
+- **HashTap = veri işleyen** (yedekleme, uzaktan destek, güncelleme
+  kapsamında veriye ulaşabilir).
+- Sözleşmede DPA (Data Processing Agreement) imzalanır.
+- Veri fiziksel olarak **restoranın kendi donanımında** durur — bu
+  KVKK açısından restoran için büyük avantaj.
 
 ### 2.2 Veri envanteri (özet)
 
 | Veri | Sorumlu | Saklama süresi | Neden |
 |---|---|---|---|
-| Müşteri telefonu (QR akışı, opsiyonel) | Kiracı | Sipariş sonrası 6 ay | Servis sonrası bildirim/iade |
-| Müşteri adı (fatura için) | Kiracı | 10 yıl | VUK (vergi) gereği |
-| Müşteri VKN/TCKN (B2B fiş) | Kiracı | 10 yıl | VUK |
-| Sipariş detayları | Kiracı | 10 yıl | VUK |
+| Müşteri telefonu (QR akışı, opsiyonel) | Restoran | Sipariş sonrası 6 ay | Servis sonrası bildirim |
+| Müşteri adı (B2B fatura için) | Restoran | 10 yıl | VUK (vergi) |
+| Müşteri VKN/TCKN (B2B fiş) | Restoran | 10 yıl | VUK |
+| Sipariş detayları | Restoran | 10 yıl | VUK |
 | Kart PAN | — | Saklanmaz | PCI |
-| Kart last4 + token | Kiracı | 10 yıl (fiş logu) | Vergi kaydı |
-| Restoran çalışan bilgileri | Kiracı | İstihdam süresi + 10 yıl | iş hukuku |
-| HashTap ekibi hesap bilgileri | HashTap | İlişki süresi + 5 yıl | KVKK default |
+| Kart last4 + token | Restoran | 10 yıl | Vergi kaydı |
+| Restoran çalışan bilgileri | Restoran | İstihdam + 10 yıl | iş hukuku |
+| Yedekleme ciphertext'i | HashTap ops (B2) | 1 yıl (retention) | DR |
+| Uzaktan erişim log'ları | HashTap ops | 1 yıl | audit |
 
-### 2.3 Aktarım
-- Hetzner Almanya DC — yurt dışı aktarım. Müşteri açık rıza ile (onboarding sözleşmesi içinde) + sözleşmesel güvence (Standard Contractual Clauses benzeri).
-- iyzico — ödeme için zorunlu aktarım (yurt içi).
-- e-Arşiv sağlayıcısı — fiş için zorunlu aktarım (yurt içi, GİB'e gider).
+### 2.3 Veri aktarımı
+
+- **Müşteri verisi restoranın PC'sinde.** Yurt dışı aktarım yok (default).
+- **Yedekleme:** şifreli ciphertext Backblaze B2 (EU-Central). Anahtar
+  HashTap KMS'te + restoran zarfında; B2 içeriği göremez.
+- **iyzico:** ödeme için zorunlu aktarım (yurt içi).
+- **e-Arşiv sağlayıcısı:** fiş için zorunlu aktarım (yurt içi, GİB'e).
+- **HashTap monitoring:** sadece metrik (müşteri verisi yok); yurt dışı
+  sayılmaz (anonim telemetri).
 
 ### 2.4 İhlal prosedürü
-KVKK veri ihlalini 72 saat içinde Kurul'a bildirme zorunluluğu var. Runbook:
-1. Tespit → on-call ekip hemen haberdar olur.
-2. Kapsam tespiti: hangi kiracılar, hangi veri, kaç kişi.
-3. 24 saat içinde ilgili kiracılara yazılı bildirim.
-4. 72 saat içinde KVKK Kurulu bildirim.
-5. Post-mortem + düzeltici aksiyonlar.
+
+KVKK veri ihlalini 72 saat içinde Kurul'a bildirme zorunluluğu var.
+Runbook:
+1. Tespit → HashTap on-call hemen haberdar olur.
+2. Kapsam tespiti: hangi restoranlar, hangi veri.
+3. 24 saat içinde etkilenen restoran sahiplerine yazılı bildirim.
+4. 72 saat içinde KVKK Kurulu bildirim (restoran yapar, HashTap yardımcı).
+5. Post-mortem + düzeltici aksiyon.
 
 ### 2.5 Veri ihracı ve silme
-- Kiracı talebi: "verimi ver" → Odoo backup API + filestore arşiv → indirilebilir zip.
-- Kiracı talebi: "verimi sil" → offboard akışı (`MULTI_TENANCY.md` §3.4). Vergi mevzuatı (VUK 10 yıl) KVKK'ya üstündür — sipariş/fiş verisi süresi dolana kadar silinemez, kiracıya açıklanır.
-- Bireysel müşteri talebi ("benim telefonumu silin") → `res.partner` kaydını anonimleştir. Fiş verisi saklanır ama PII redacted.
+
+- Restoran talebi "verimi ver" → Odoo native export + filestore arşiv →
+  zip (restoran sahibi admin panelinden indirir).
+- Restoran sözleşmeyi iptal etti → HashTap veri işleme sona erer; yedek
+  retention'ına göre silinir (1 yıl sonra bulut'tan da düşer).
+- Vergi mevzuatı (VUK 10 yıl) KVKK'ya üstündür — sipariş/fiş verisi
+  süresi dolana kadar restoran tarafında saklanır.
+- Bireysel müşteri talebi ("benim telefonumu silin") → restoran
+  `res.partner` kaydını anonimleştirir. Fiş verisi saklanır ama PII
+  redacted.
 
 ## 3. PCI DSS kapsamı
 
 ### 3.1 Kart verisiyle ilişkimiz
-- **Tam PAN, CVV, expiry** HashTap sunucularına hiç girmez.
-- PWA → iyzico Checkout Form: kart bilgisi iyzico domain'inde girilir (iframe veya redirect).
-- Geri dönen bilgi: last4, token, brand (Visa/Master), taksit seçeneği.
+
+- **Tam PAN, CVV, expiry** HashTap sistemine **hiç girmez**.
+- Müşteri PWA → iyzico Checkout Form: kart bilgisi iyzico domain'inde
+  girilir (iframe).
+- Geri dönen bilgi: last4, token, brand, taksit.
 
 ### 3.2 SAQ sınıfı
-- **SAQ-A** kapsamında olmalıyız (outsourced e-commerce — merchant hiç kart verisine dokunmuyor).
-- SAQ-A-EP (merchant sayfası üzerinden kart toplanıyor ama iyzico'ya gidiyor) kapsamına düşmemek için iyzico Checkout Form zorunlu. Embedded form veya custom input yasak.
+
+- **SAQ-A** kapsamındayız (outsourced — HashTap kart verisine dokunmuyor).
+- SAQ-A-EP'ye düşmemek için iyzico Checkout Form zorunlu. Kart input'unu
+  HashTap'te render etmek yasak.
 
 ### 3.3 Doğrulama
-- iyzico'dan "PCI DSS compliant provider" belgesi temin edilir ve sözleşmeye eklenir.
-- Dahili audit: yılda 1 kez kod tabanı taraması — kart verisi kalıntısı var mı.
 
-## 4. Kimlik doğrulama (authentication)
+- iyzico'dan "PCI DSS compliant provider" belgesi temin edilip sözleşmeye
+  eklenir.
+- Yıllık kod tabanı taraması: kart verisi kalıntısı var mı?
+
+## 4. Kimlik doğrulama
 
 ### 4.1 Restoran yöneticisi / personeli (Odoo panel)
-- Odoo'nun native auth (kullanıcı + şifre + opsiyonel 2FA).
-- **2FA zorunlu** admin rolü için. `auth_totp` modülü aktif.
-- Şifre politikası: min 12 karakter, karışık. Password rotation zorunlu değil (NIST 2017+).
-- SSO (Google Workspace) — faz 2 opsiyonu.
 
-### 4.2 Müşteri PWA
-- **Auth yok.** QR'dan türeyen kısa ömürlü session token. Müşteri hesap açmaz.
-- Sipariş sonrası access_token ile durum sorgulanır (24 saat TTL).
-- Gerçek kimlik doğrulama yok — müşteri "anonim" (veya opsiyonel telefonla).
+- Odoo native auth (kullanıcı + şifre + opsiyonel 2FA).
+- **2FA zorunlu** manager rolü için. `auth_totp` modülü aktif.
+- Şifre politikası: min 12 karakter. Rotation zorunlu değil (NIST 2017+).
 
-### 4.3 HashTap ekibi (admin / iç)
-- Master password (Odoo DB yönetimi) — vault'ta, rotasyon ayda 1.
-- Tenant admin API (gateway) — her HashTap ekibi üyesi JWT, rol bazlı.
-- 2FA zorunlu.
-- Prod sunucu SSH: sadece anahtar, şifresiz.
+### 4.2 Cashier + Waiter uygulamaları
 
-## 5. Yetkilendirme (authorization)
+- Kısa PIN (4 haneli) veya kullanıcı adı + şifre.
+- Session token browser-side (Zustand store + localStorage), shift
+  süresince geçerli.
+- Idle timeout: 15 dk inaktivite → yeniden PIN.
 
-### 5.1 Odoo rol sistemi
-- `hashtap.group_manager` — restoran her şeyi.
-- `hashtap.group_staff` — sipariş + masa görüntüleme, durum güncelleme.
-- `hashtap.group_kitchen` — mutfak ekranı (sadece hazırla/hazır).
-- `hashtap.group_readonly_analytics` — raporlar.
+### 4.3 Müşteri PWA
+
+- **Auth yok.** QR'dan türeyen kısa ömürlü session token.
+- Sipariş sonrası `order_access_token` ile durum sorgulanır (24 saat
+  TTL).
+- Gerçek kimlik yok — müşteri anonim (veya opsiyonel telefonla).
+
+### 4.4 HashTap destek ekibi
+
+- **Tailscale VPN** kimlik + ACL. Restoran PC'sine SSH.
+- Her SSH oturumu loglanır + restoran onayına bağlanır (WhatsApp tek satır).
+- Master secret'lar (kurulum token, yedekleme KMS) HashTap vault'ta
+  (1Password / Bitwarden Teams), 2FA zorunlu.
+
+## 5. Yetkilendirme
+
+### 5.1 Odoo rolleri
+
+- `hashtap.group_manager` — restoran sahibi, her şeye erişim.
+- `hashtap.group_cashier` — kasa yönetimi, ödeme, rapor.
+- `hashtap.group_staff` — garson, sipariş görüntüleme ve güncelleme.
+- `hashtap.group_kitchen` — mutfak, sadece KDS aksiyonları.
+- `hashtap.group_readonly_analytics` — muhasebeci, sadece rapor.
 
 Detay: `MODULE_DESIGN.md` §7.
 
 ### 5.2 Record rules
-- Kullanıcı **sadece kendi şirketinin** kayıtlarını görür (Odoo default company rule).
-- Çoklu şube desteği geldiğinde (faz 7+): şube bazlı record rule.
+
+- Kullanıcı sadece kendi restoranının kayıtlarını görür (tek kiracı ortamda
+  zaten tek şirket, ama Odoo rules yine de savunma derinliği için açık).
+- Çoklu şube desteği gelince (faz 11+) şube bazlı record rule eklenir.
 
 ### 5.3 Gateway RBAC
-- Admin API (tenant create/suspend) — sadece HashTap ekibi.
-- Public API (PWA) — tenant-scoped; başka kiracıya crosssover yok.
-- Webhook (iyzico, e-Arşiv) — IP whitelist + imza doğrulama.
+
+- Public API (PWA) — order access token ile sınırlı (sadece kendi
+  siparişini sorgulayabilir).
+- Staff API (Cashier + Waiter) — Odoo kullanıcısı + scope.
+- Webhook (iyzico, e-Arşiv) — IP whitelist + HMAC imza doğrulama.
 
 ## 6. Secret yönetimi
 
-Detay: `DEPLOYMENT.md` §7.
-
 ### 6.1 Saklama katmanları
+
 - **Source code:** asla. `.env.example` sadece dummy değerler.
-- **Repo:** `.env.prod` git-crypt ile şifreli veya hiç commit'lenmez (S3 secret).
-- **Sunucu:** 600 izinli dosya; systemd environment.
-- **Odoo DB:** `ir.config_parameter` encrypted-at-rest (postgres tde veya Odoo encrypt_util).
+- **Repo:** `.env` git'e düşmez (`.gitignore`'da).
+- **Kurulum:** `.env` dosyası kasa PC'sinde `/opt/hashtap/.env`, root:700.
+- **Odoo DB:** `ir.config_parameter` encrypted-at-rest.
+- **HashTap ops KMS:** yedekleme şifreleri, Tailscale auth key.
+- **Restoran kasası:** yedekleme şifre kopyası kapalı zarfta
+  (dual-custody).
 
 ### 6.2 Rotasyon
+
 - iyzico API key: yılda 1 (veya şüphe durumunda).
-- Odoo master password: ayda 1.
-- JWT signing key: 6 ayda 1 (graceful rotation, iki key arasında geçiş).
-- Postgres admin şifresi: 6 ayda 1.
+- JWT signing key: 6 ayda 1 (graceful rotation).
+- Tailscale auth key: 90 günde 1 (cihaz başına yenileme).
+- Restic password: değiştirilmez (repo'nun içindedir); kaybedilmez.
 
 ### 6.3 Paylaşım
-- HashTap ekibi arasında paylaşım: 1Password / Bitwarden tipi vault.
-- SSH / prod erişim anahtarları: kişi başına, kayıtlı.
+
+- HashTap ekibi arası: 1Password / Bitwarden Teams vault, 2FA zorunlu.
+- SSH prod erişim anahtarları: kişi-başı, merkezi audit.
+- Müşteri kurulum secret'larını asla mail/mesajla paylaşma — kurulum
+  sonrası restoranın kasasında fiziksel zarf.
 
 ## 7. Ağ güvenliği
 
 ### 7.1 TLS
-- Tüm dış trafik TLS 1.2+, prefer 1.3.
-- HSTS on (`max-age=31536000; includeSubDomains`).
-- TLS 1.0/1.1 kapalı.
+
+- **Public yüzey** (Cloudflare Tunnel üzerinden `qr.<slug>.hashtap.app`):
+  Cloudflare yönetir, TLS 1.2+.
+- **Yerel yüzey** (`*.hashtap.local`): Caddy yerel CA + `mkcert`, tablet
+  ve ekranlara root CA kuruluş sırasında güvenilir olarak eklenir.
+- HSTS on public domain'de.
 
 ### 7.2 Firewall
-- Gateway VPC: sadece 80/443 dışarı açık. İç trafik (gateway ↔ Odoo, Odoo ↔ Postgres) private network.
-- SSH: sadece bastion host, IP whitelist.
-- Postgres: sadece iç network; public internet asla.
+
+- Restoran PC'sinde (ufw / Windows Firewall):
+  - Inbound: 80, 443 (Caddy) sadece LAN'dan; 8069 (Odoo) sadece LAN'dan.
+  - Inbound internet'ten: hiçbir şey. Port forwarding yok.
+  - Outbound: 443 (iyzico, Foriba, Cloudflare, HashTap ops, Docker
+    registry), Tailscale 41641 UDP.
+- Postgres: sadece container internal network, host'a hiç expose
+  edilmez.
 
 ### 7.3 Rate limiting
-- Gateway (her PWA IP'si): 60 req/dk (okuma), 10 req/dk (yazma).
-- Tenant başı: 1000 req/dk agregat.
+
+- Gateway (PWA IP başı): 60 req/dk (okuma), 10 req/dk (yazma).
 - Aşım → 429.
+- Staff endpoint'leri: daha gevşek (personel tarafı).
 
 ### 7.4 DDoS
-- Cloudflare proxy. L3/L4 DDoS otomatik mitigate.
-- Uygulama seviyesi (L7) botlar — Cloudflare rate limit rules + HashTap gateway rate limit.
+
+- Cloudflare Tunnel zaten Cloudflare proxy'nin arkasında. L3/L4 otomatik
+  mitigate.
+- Yerel yüzey zaten public değil — DDoS vektörü yok.
 
 ## 8. Input validation
 
-### 8.1 PWA'dan gelen veri
+### 8.1 PWA / Cashier / Waiter'dan gelen veri
+
 - Zod şemaları (`packages/shared`).
 - Gateway kenarda valide eder; invalid → 400.
 - Odoo controller yine valide eder (defense in depth).
+- **Fiyat hesabı her zaman sunucu tarafında** — client'tan gelen total
+  asla güvenilir değil.
 
 ### 8.2 SQL injection
-- ORM (Odoo, Drizzle gateway'de) parametrize eder. Ham SQL yazıldığı nadir durumlarda (raporlama) parametreler `%s` ile geçilir; string interpolation yasak.
+
+- ORM (Odoo, gateway'de Prisma/Drizzle) parametrize eder.
+- Ham SQL yazıldığı nadir durumlarda parametreler `%s` ile;
+  string interpolation yasak (lint kuralı).
 
 ### 8.3 XSS
-- PWA React — `dangerouslySetInnerHTML` yasak (lint kural).
+
+- React `dangerouslySetInnerHTML` yasak (ESLint).
 - Odoo QWeb template'leri otomatik escape eder.
 
 ### 8.4 CSRF
+
 - Gateway: SameSite cookie + origin check.
-- Odoo: native CSRF protection; public controller'larda JSON-RPC imza ile korunur.
+- Odoo: native CSRF protection; public controller'larda JSON-RPC imza
+  ile korunur.
 
 ## 9. Bağımlılık yönetimi
 
@@ -181,49 +271,63 @@ Detay: `DEPLOYMENT.md` §7.
 ## 10. Log ve audit
 
 ### 10.1 Log içeriği
-- Her istek: method, path, status, latency, user_id (varsa), tenant_id.
-- Yasak: kart PAN, CVV, şifre, tam telefon numarası (hash'li OK).
+
+- Her istek: method, path, status, latency, user_id (varsa).
+- **Yasak:** kart PAN, CVV, şifre, tam telefon (hash OK).
 - PII: e-posta maskelenir (`a****@example.com`).
 
 ### 10.2 Saklama
-- Uygulama log'ları: 90 gün (S3 cold).
-- Audit log (Odoo chatter): kalıcı.
+
+- Uygulama log'ları: 14 gün (docker log rotation).
+- Audit log (Odoo chatter): kalıcı (DB içinde).
 - Vergi ilişkili log (sipariş, fiş): 10 yıl.
+- HashTap ops remote-access log: 1 yıl.
 
 ### 10.3 Audit trail
-- Odoo `mail.thread` ile kritik model değişiklikleri loglanır (fiyat değişikliği, user permission değişikliği).
-- Admin paneli aksiyonları (HashTap ekibi): `tenant_events` tablosu (`MULTI_TENANCY.md` §4).
+
+- Odoo `mail.thread` — kritik model değişiklikleri loglanır (fiyat,
+  kullanıcı yetkisi, iade).
+- HashTap SSH erişimleri → `/var/log/hashtap/remote-access.log` →
+  merkezi ops log'a senkron.
 
 ## 11. Fiziksel güvenlik
 
-- Bulut sağlayıcıya delege (Hetzner ISO 27001).
-- Print-bridge (restoranda Pi) fiziksel erişim: restoranın sorumluluğunda. Ajan token'ı compromised olursa iptal + yeniden kurulum.
+- **Restoran PC'si:** disk şifreleme (LUKS Linux'ta, BitLocker Windows'ta)
+  installer tarafından önerilir/kurulur.
+- **Yedek zarfı:** restoran sahibine teslim edilen yedekleme şifresi
+  zarfı güvenli yerde saklanmalı (kasa vs).
+- **Tailscale anahtarı:** cihaz başı, cihaz kaybolursa iptal.
+- **HashTap ops VPS:** Hetzner ISO 27001 (DC fiziksel güvenlik).
 
 ## 12. Penetrasyon testi
 
-- MVP öncesi: ücretsiz / açık kaynak araçlarla (OWASP ZAP, Burp Community) kendi iç test.
-- MVP sonrası ilk 6 ayda: profesyonel pentest (dış firma).
-- Her pentest sonrası bulgular triage + public-trust affecting olanlar 30 günde çözülür.
+- MVP öncesi: açık kaynak araçlarla (OWASP ZAP, Burp Community) iç test.
+- Pilot sonrası ilk 6 ayda: profesyonel pentest.
+- Her pentest sonrası bulgular triage; public-trust affecting olanlar
+  30 günde çözülür.
 
 ## 13. Sosyal mühendislik
 
-- Kiracı desteği: şifre sıfırlama sadece doğrulanmış e-posta + telefon üzerinden.
-- HashTap ekibi arası secret paylaşımı: sadece vault, asla email/mesaj.
+- Restoran sahibine şifre sıfırlama: sadece doğrulanmış e-posta + telefon.
+- HashTap ekibi arası secret paylaşımı: sadece vault, asla e-mail/mesaj.
 - Phishing savunması: kurumsal mail'de DMARC, SPF, DKIM.
 
-## 14. Felaket senaryosu
+## 14. Felaket senaryoları
 
 | Senaryo | Tepki |
 |---|---|
-| Master password sızdı | Tüm kiracılara acil duyuru, password rotate, şüpheli işlemleri iste geçmişten doğrula |
-| iyzico master key sızdı | iyzico'ya anında bildir, rotate. Arada yapılan işlemleri 48 saat içinde audit |
-| Tek kiracının verisi başka kiracıya sızdı | 72 saat KVKK, etkilenen kiracılara bireysel bildirim, root cause analizi |
-| Tüm Postgres silindi | DR restore — hedef RTO 4 saat, RPO 15 dk (WAL archive) |
-| Pi (print-bridge) çalındı | Token iptal, kiracıya yeni Pi kurulum, kısa süreli fiş = e-posta/PDF mod |
+| Bir restoran PC'si çalındı | Tailscale node iptal, diskin şifreli olup olmadığı kontrol (LUKS), restoran bilgilendir, sigorta |
+| Restoran diski öldü | `OPERATIONS.md` §5.4 runbook — yedekten restore, yeni PC'ye, 4 saat RTO |
+| Tailscale ops kontrol düzlemi ele geçirildi | Tüm auth key'leri iptal, restoran sahiplerine acil duyuru, kurulumları re-enroll |
+| HashTap KMS (yedek şifreleri) ele geçirildi | Tüm yedek şifrelerini rotate (yeni repo init), restoran zarflarını güncelle |
+| iyzico master key sızdı | iyzico'ya anında bildir, rotate, arada yapılan işlemleri audit |
+| Tüm restoran yedekleri silindi (B2 hesap kapandı) | Alternatif sağlayıcıya geç (S3, Wasabi), retention'dan dolayı en kötü 1 gün veri kaybı |
 
 ## 15. Açık konular
 
-- DPO (Data Protection Officer) atanması: ölçek büyüdüğünde şart — muhtemelen dış danışman.
-- Penetrasyon test firması seçimi.
-- KVKK veri envanteri resmi belgesi (VERBIS kaydı) — MVP sonrası ama yasal zorunluluk.
-- Sigorta: Siber sorumluluk poliçesi araştırılmalı (ölçek büyüdüğünde).
+- **DPO (Data Protection Officer):** Ölçek büyüdüğünde şart — dış danışman.
+- **VERBIS kaydı:** KVKK yasal zorunluluk — pilot sonrası.
+- **Siber sorumluluk sigortası:** 50+ kurulum öncesi araştırılmalı.
+- **Restoran disk şifrelemesi zorunlu mu?** MVP'de önerilir (installer
+  teklif eder); çoğu restoran "evet" der. Sözleşmede "şifrelemediyseniz
+  veri kaybı riski sizdedir" notu.

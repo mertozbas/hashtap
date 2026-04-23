@@ -1,8 +1,16 @@
 # ADR-0006 — DB-per-tenant izolasyon modeli
 
-- Durum: kabul
+- Durum: **SUPERSEDED (2026-04-23)** — yerine `ADR-0011` geçti
 - Tarih: 2026-04-20
-- İlgili: ADR-0004, `MULTI_TENANCY.md`, `SECURITY.md`
+- İlgili: ADR-0004, ADR-0011 (yeni canonical karar)
+
+> **⚠️ Bu ADR artık geçerli değildir.** HashTap 2026-04-23'te SaaS
+> multi-tenant modelinden on-premise tek-kiracı modele pivot yaptı
+> (`BUSINESS_MODEL.md`). Her kurulum artık fiziksel olarak izole
+> (her restoranın kendi donanımı = kendi DB'si). Yazılım seviyesinde
+> multi-tenant izolasyon kalıntıları Faz 8 (mimari sadeleştirme) ile
+> kaldırılacak. Canonical karar: `adr/0011-on-premise-deployment.md`.
+> Aşağıdaki içerik tarihsel referans amaçlı korunuyor.
 
 ## Bağlam
 
@@ -59,7 +67,7 @@ Kritik gerekçe: Odoo bu modeli birincil sınıf destekliyor; diğer modellerin 
 
 İkincil gerekçeler: KVKK uyumu, veri izolasyonu, yedek granülasyonu.
 
-Dezavantajları (operasyonel yük, global raporlama) MVP ölçeğinde (10-50 kiracı) taşınabilir. Ölçek büyüyünce (`MULTI_TENANCY.md` §8) shard'lama ve kiracı tiyerlemeye geçilir.
+Dezavantajları (operasyonel yük, global raporlama) MVP ölçeğinde (10-50 kiracı) taşınabilir. Ölçek büyüyünce shard'lama ve kiracı tiyerlemeye geçilir. [Pivot notu: bu yol artık kullanılmıyor, bkz ADR-0011.]
 
 ## Uygulama kuralları
 
@@ -67,7 +75,7 @@ Dezavantajları (operasyonel yük, global raporlama) MVP ölçeğinde (10-50 kir
 2. Odoo `db_filter` ayarı subdomain'e göre DB seçer: `tenant\.hashtap\.co → tenant_\1`.
 3. Gateway'in kendi küçük registry DB'si var — kiracı izolasyonuna **tabi değil** (sadece HashTap ekibi erişir).
 4. HashTap ekibinden hiçbir kod başka kiracı DB'sine cross-query atmaz. Global raporlama için ayrı data warehouse pipeline yazılır (MVP dışı).
-5. Provisioning / offboard otomasyonu (`MULTI_TENANCY.md` §3) idempotent olur.
+5. Provisioning / offboard otomasyonu idempotent olur.
 
 ## Global raporlama yolu (ileride)
 
@@ -81,7 +89,6 @@ Dezavantajları (operasyonel yük, global raporlama) MVP ölçeğinde (10-50 kir
 - DB schema migration: her kiracı için `odoo -d <db> -u hashtap_pos --stop-after-init`.
 - Bakım pencereleri: Türkiye saati gecesi, restoran kapalıyken.
 - Rolling: max 10 kiracı/gece, hata oranı %5'i aşarsa dur.
-- Detay: `MULTI_TENANCY.md` §7.
 
 ## Sonuçlar
 

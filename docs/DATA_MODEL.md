@@ -2,6 +2,12 @@
 
 Bu doküman `hashtap_pos` modülünün tanımladığı ve genişlettiği veri modellerini alan seviyesinde tanımlar. Odoo ORM kavramları (`fields.Char`, `Many2one`, `One2many`, `Selection`) kullanılır.
 
+> **2026-04-23 pivot notu:** On-premise tek-kiracı dağıtım modeline
+> geçildi (`adr/0011-on-premise-deployment.md`). Veri modelinin kendisi
+> değişmedi; ancak §3.1 ve §3.2'deki JSON API örneklerinde `tenant_slug`
+> alanı artık kullanılmıyor (her kurulum tek restoran = tenant yok).
+> Faz 8 (kod sadeleştirme) bu alanı kaldırır.
+
 > **Güncel uygulama 2026-04-21.** §2.7 "`pos.order` extension" taslağı
 > yerine **ayrı bir `hashtap.order` modeli** kullanılıyor; QR akışını
 > Odoo kasa akışından bağımsız tuttuk. Gerçek alan listesi:

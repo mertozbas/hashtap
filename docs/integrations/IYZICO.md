@@ -15,7 +15,7 @@ Detaylı ayrım için: `docs/PRODUCT.md` §5 + `adr/0004-odoo-base.md` dışınd
 
 ## 2. subMerchant onboarding
 
-Her HashTap kiracısı iyzico tarafında bir subMerchant olur. Onboarding tenant provisioning'in parçası (`MULTI_TENANCY.md` §3.1).
+Her HashTap kurulumu iyzico tarafında bir subMerchant olur. Onboarding IT ekibinin kurulum gününde yaptığı işin parçası (`INSTALLATION_PLAYBOOK.md` §4.2.2 — wizard adımı 4).
 
 ### 2.1 Gerekli bilgiler
 - **Restoranın yasal adı / ünvanı.**

@@ -5,7 +5,42 @@ açısından tek referans noktasıdır. Diğer dokümanlar (ROADMAP, DATA_MODEL,
 MODULE_DESIGN...) tasarım niyetini ve hedefini anlatır; **bu sayfa
 gerçeği anlatır**. Yeni iş biter bitmez bu sayfa güncellenir.
 
-Son güncelleme: 2026-04-21.
+Son güncelleme: 2026-04-23.
+
+## 🚨 Stratejik pivot — 2026-04-23
+
+**HashTap SaaS modelinden on-premise tek-kiracı modeline geçti.**
+Kurulu SaaS mimarisi (multi-tenant cloud, subdomain routing, DB-per-tenant)
+terk edildi; yeni model: her restorana satış ekibi + IT ekibi fiziken
+gider, yazılımı restoranın kendi PC'sine kurar, teslim eder. İleride
+HashTap markalı donanım bundle'ı satışı hedefi.
+
+Bu pivot sonrası:
+- **Faz 8 (multi-tenant provisioning)** → Faz 8 "Mimari sadeleştirme +
+  installer CLI" olarak yeniden tanımlandı.
+- **Yeni Faz 11-15** eklendi: backup/monitoring altyapısı, design system,
+  cashier uygulaması, waiter uygulaması.
+- Eski dokümanlar silindi: `MULTI_TENANCY.md` (çok kiracılı mimari),
+  `DEPLOYMENT.md` (cloud Hetzner topolojisi), eski `ARCHITECTURE.md`
+  (SaaS cloud mimari). Yerlerine `ARCHITECTURE.md` (on-premise),
+  `INSTALLATION_PLAYBOOK.md` ve `OPERATIONS.md` geldi.
+- `ADR-0006` (DB-per-tenant) superseded olarak işaretlendi.
+- Cross-reference'lar, pivot sonrası kısa tutmak için ilgili dokümanları
+  birleştirici/temizleyici şekilde güncellendi.
+
+Pivot dokümantasyonu:
+- `BUSINESS_MODEL.md` — yeni iş modeli
+- `adr/0011-on-premise-deployment.md` — karar ADR
+- `ARCHITECTURE.md` — yeni mimari
+- `INSTALLATION_PLAYBOOK.md` — IT ekibi kurulum rehberi
+- `OPERATIONS.md` — destek, yedekleme, güncelleme altyapısı
+- `DESIGN_SYSTEM.md` — modern UI tasarım dili
+- `apps/CASHIER.md`, `apps/WAITER.md` — yeni uygulamalar
+- `ROADMAP.md` — pivot sonrası yol haritası
+
+**Kod tabanı etkisi:** pivot dokümantasyonu tamamlandı (W0). W1 itibarıyla
+kod sadeleştirme başlayacak. Faz 1-7.5 çıktıları aynen korunuyor (Odoo
+backend, payment, e-Arşiv, KDS, white-label).
 
 ## 1. Faz durumu — özet
 
@@ -21,9 +56,14 @@ Son güncelleme: 2026-04-21.
 | 6b | Print-bridge (Pi + ESC/POS) | ⏳ | Pilot restoran seçildiğinde başlar. |
 | **7.5** | **hashtap_theme doldur (white-label pass)** | ✅ | Login CSS-branded, backend navbar + buton overrides, "Powered by Odoo" gizli. |
 | 7 | POS adapter (SambaPOS / Adisyo) | ⏳ | Segment B — partnership ve pilot müşteri gerekli. |
-| 8 | Multi-tenant provisioning | ⏳ | Tenant lifecycle, DB per tenant, DNS + SSL otomasyonu. |
+| 8 | ~~Multi-tenant provisioning~~ **Mimari sadeleştirme + Installer CLI** | ⏳ | Pivot sonrası: multi-tenant kalıntı temizliği, `packages/installer/` ile tek komutla kurulum. |
 | 9 | Pilot hazırlık | ⏳ | Pilot restoran menü yüklemesi, eğitim, uptime monitoring, destek süreci. |
 | 10 | Pilot (4 hafta canlı) | ⏳ | Canary + gözlem. |
+| **11** | **Remote support + backup + monitoring altyapısı** | ⏳ | Tailscale, restic+B2, Uptime Kuma, heartbeat protokolü. |
+| **12** | **Design system (packages/ui)** | ⏳ | Modern UI tasarım dili, bileşen kütüphanesi, Storybook. |
+| **13** | **KDS dokunmatik iyileştirmeleri** | ⏳ | Yeni design system'e göre refresh, bump-bar desteği. |
+| **14** | **Cashier uygulaması** | ⏳ | `apps/cashier/` — kasa için React PWA (detay: `apps/CASHIER.md`). |
+| **15** | **Waiter uygulaması** | ⏳ | `apps/waiter/` — garson için mobile-first React PWA (detay: `apps/WAITER.md`). |
 
 Notlar:
 
@@ -95,14 +135,20 @@ Faz 0 iskelet hali. Odoo controllerları doğrudan PWA ile konuşabiliyor
 ### Pilot öncesi yapılması gereken
 - Faz 6b (Pi print-bridge) — mutfakta termal yazıcı kullanacak restoranlar
   için.
-- Faz 8 — tenant lifecycle (tek komutla yeni kiracı). Şu an manuel DB +
-  module install.
+- **Faz 8 (pivot sonrası yeniden tanımlandı)** — mimari sadeleştirme
+  (multi-tenant kalıntılarını sil) + Installer CLI.
+- **Faz 11** — remote support (Tailscale) + backup (restic+B2) +
+  monitoring (Uptime Kuma) altyapısı.
+- **Faz 12** — design system / paylaşılan UI kütüphanesi.
+- **Faz 14-15** — cashier ve waiter uygulamaları.
 - Faz 9 — pilot hazırlık checklistleri.
 
 ## 4. Son büyük değişiklikler (değişiklik günlüğü)
 
 | Tarih | Değişiklik | PR/commit notu |
 |---|---|---|
+| 2026-04-23 | **Doküman temizliği:** Eski SaaS/multi-tenant dokümanları silindi (`MULTI_TENANCY.md`, `DEPLOYMENT.md`, eski `ARCHITECTURE.md`). `ON_PREMISE_ARCHITECTURE.md` → canonical `ARCHITECTURE.md` rename. `DEV_SETUP.md` ve `SECURITY.md` on-premise'a göre yeniden yazıldı. `PRODUCT.md` + `hashtap-sunum.md` fiyatlandırma güncellendi. | doc only |
+| 2026-04-23 | **Stratejik pivot:** SaaS → on-premise tek-kiracı. Dokümantasyon seti yazıldı (`BUSINESS_MODEL.md`, ADR-0011, `ARCHITECTURE.md`, `INSTALLATION_PLAYBOOK.md`, `OPERATIONS.md`, `DESIGN_SYSTEM.md`, `apps/CASHIER.md`, `apps/WAITER.md`). | doc only, kod değişmedi |
 | 2026-04-21 | KDS bug fix: `modifier.mapped("name")` → `name_tr` | `hashtap_pos/controllers/kds.py:40` |
 | 2026-04-21 | Faz 6a KDS: controller + QWeb + CSS + JS | `controllers/kds.py`, `views/hashtap_kds_*`, `static/src/{css,js}/kds.*` |
 | 2026-04-21 | Faz 7.5: `hashtap_theme` SCSS doldurma, login CSS branding | `hashtap_theme/static/src/scss/{_variables, overrides, login}.scss` |

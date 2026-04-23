@@ -156,15 +156,16 @@ Müşteri ödemesi  →  Güvenli ödeme altyapısı (iyzico/PayTR)  →  Sizin 
 
 ## 12. Fiyatlandırma
 
-HashTap üç kalemden oluşur. Fiyatlar restoranınızın büyüklüğüne, masa sayısına, konsept sayısına ve seçilen entegrasyon yöntemine göre belirlenir — birlikte görüşeriz.
+HashTap iki kalemden oluşur. Fiyatlar restoranınızın büyüklüğüne, masa sayısına ve mevcut donanım durumunuza göre belirlenir — birlikte görüşeriz.
 
 | Kalem | İçerik | Fiyatlandırma |
 |-------|--------|---------------|
-| **Kurulum bedeli** (tek seferlik) | Sisteme bağlantı, menü hazırlığı, QR kod baskı, personel eğitimi, gerekirse köprü cihazı | Görüşmeye açık |
-| **Yazılım kullanım bedeli** (aylık veya yıllık) | Müşteri uygulaması, restoran paneli, ödeme entegrasyonu, e-Arşiv entegrasyonu, sınırsız sipariş | Görüşmeye açık |
-| **Yıllık bakım & destek** (opsiyonel) | Güncellemeler, 7/24 teknik destek, yedekleme, raporlama eklentileri | Görüşmeye açık |
+| **Kurulum bedeli** (tek seferlik) | Yazılım lisansı, saha kurulumu, sisteme bağlantı, menü hazırlığı, QR kod baskı, personel eğitimi, gerekirse köprü cihazı, ilk yıl bakım dahil | Görüşmeye açık |
+| **Yıllık bakım & destek** (sonraki yıllar) | Güncellemeler, 7/24 teknik destek, uzaktan müdahale, otomatik yedekleme, saha ziyareti (yılda 1-2 gerektiğinde) | Görüşmeye açık |
 
-**Pilot teklifimiz:** ilk 1–3 ay kurulum + yazılım bedelinde özel pilot fiyatı. Detayları görüşmede netleştiririz.
+**Önemli:** Aylık abonelik yok. Sistem kendi bilgisayarınızda, kendi verinizle çalışır — bizim bulutumuzda durmaz. Yıllık bakımı yenilemezseniz sistem çalışmaya devam eder, sadece güncelleme ve destek kesilir.
+
+**Pilot teklifimiz:** İlk birkaç pilot restorana özel kurulum fiyatı. Detayları görüşmede netleştiririz.
 
 ---
 
@@ -183,10 +184,10 @@ Mutfak/bar fişlerini basan cihazımızda **5 dakikalık yerel buffer** vardır.
 Restoran paneli iki düğmeli: "Hazır" ve "Teslim edildi". 30 dakikada öğrenilir, mutfaktaki fiş zaten her zamanki gibi.
 
 **S: Veri güvenliği?**
-KVKK uyumlu çalışırız. Müşteri kart bilgilerini biz saklamayız — ödeme altyapısı (iyzico/PayTR) sektör standardı PCI-DSS sertifikalıdır.
+KVKK uyumlu çalışırız. Tüm müşteri verileriniz **kendi restoranınızdaki bilgisayarda** durur; bizim bulutumuza akmaz. Sadece şifrelenmiş gecelik yedek (içeriğini biz de göremeyiz) felaket kurtarma için bulutta tutulur. Kart bilgilerini biz saklamayız — ödeme altyapısı (iyzico) PCI-DSS sertifikalıdır.
 
 **S: Sözleşme ne kadar bağlayıcı?**
-Aylık abonelikle başlayabilir, istediğiniz zaman çıkabilirsiniz. Pilot dönemde memnun kalmazsanız kurulum bedelinin bir kısmı iade edilir (sözleşmede netleştirilir).
+Kurulum bedeli tek seferlik, yıllık bakım ise sonraki yıllarda isteğe bağlı. Pilot dönemde memnun kalmazsanız kurulum bedelinin bir kısmı iade edilir (sözleşmede netleştirilir). Yıllık bakım yenilemezseniz sistem çalışmaya devam eder — veri ve yazılım sizin.
 
 **S: Birden fazla şubem var?**
 Tek hesap altında tüm şubelerinizi yönetebilirsiniz. Her şube için ayrı menü, ayrı QR seti, ayrı raporlama.

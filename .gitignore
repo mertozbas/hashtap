@@ -34,8 +34,15 @@ coverage/
 # db / local data
 *.sqlite
 *.db
-data/
+/data/
 pg-data/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 
 # runtime
 .cache/
