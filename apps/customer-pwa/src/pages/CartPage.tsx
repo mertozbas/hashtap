@@ -14,7 +14,7 @@ function fmt(kurus: number) {
 }
 
 export function CartPage() {
-  const { tenantSlug, tableId } = useParams<{ tenantSlug: string; tableId: string }>();
+  const { tableId } = useParams<{ tableId: string }>();
   const navigate = useNavigate();
   const lines = useCart((s) => s.lines);
   const increment = useCart((s) => s.incrementLine);
@@ -37,7 +37,7 @@ export function CartPage() {
         <p className="font-serif italic text-stone-500 text-center">Sepetin boş.</p>
         <div className="text-center mt-8">
           <Link
-            to={`/r/${tenantSlug}/t/${tableId}`}
+            to={`/r/t/${tableId}`}
             className="inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-stone-600 hover:text-stone-900 border border-stone-300 px-4 py-2"
           >
             <ArrowLeft className="w-3 h-3" /> Menüye dön
@@ -48,12 +48,11 @@ export function CartPage() {
   }
 
   const submit = async () => {
-    if (!tenantSlug || !tableId) return;
+    if (!tableId) return;
     setSending(true);
     setError(null);
     try {
       const order = await createOrder({
-        tenantSlug,
         tableSlug: tableId,
         items: lines.map((l) => ({
           itemId: l.itemId,
@@ -66,12 +65,11 @@ export function CartPage() {
       rememberOrder({
         orderId: order.id,
         reference: order.reference,
-        tenantSlug,
         tableSlug: tableId,
         createdAt: order.created_at ?? new Date().toISOString(),
       });
       clear();
-      navigate(`/r/${tenantSlug}/t/${tableId}/pay?order=${order.id}`);
+      navigate(`/r/t/${tableId}/pay?order=${order.id}`);
     } catch (err) {
       const code = err instanceof OrderError ? err.code : 'unknown';
       if (code === 'item_not_found' || code === 'modifier_not_allowed') {
@@ -88,9 +86,8 @@ export function CartPage() {
       case 'item_not_found':
       case 'modifier_not_allowed':
         return 'Menü güncellendi, sepeti temizledik. Lütfen yeniden seçim yap.';
-      case 'tenant_not_found':
       case 'table_not_found':
-        return 'Restoran veya masa artık geçerli değil. QR kodunu yeniden okut.';
+        return 'Masa artık geçerli değil. QR kodunu yeniden okut.';
       case 'empty_cart':
         return 'Sepet boş görünüyor.';
       case 'invalid_quantity':
@@ -194,7 +191,7 @@ export function CartPage() {
 
       <div className="text-center mt-6">
         <Link
-          to={`/r/${tenantSlug}/t/${tableId}`}
+          to={`/r/t/${tableId}`}
           className="inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-stone-600 hover:text-stone-900"
         >
           <ArrowLeft className="w-3 h-3" /> Menüye dön

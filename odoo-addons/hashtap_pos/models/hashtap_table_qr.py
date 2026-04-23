@@ -62,11 +62,10 @@ class RestaurantTable(models.Model):
     def _compute_hashtap_qr_url(self):
         icp = self.env["ir.config_parameter"].sudo()
         base = icp.get_param("hashtap.pwa_base_url", "https://example.com")
-        tenant = icp.get_param("hashtap.tenant_slug", "default")
         for rec in self:
             if rec.hashtap_qr_slug:
                 rec.hashtap_qr_url = (
-                    f"{base.rstrip('/')}/r/{tenant}/t/{rec.hashtap_qr_slug}"
+                    f"{base.rstrip('/')}/r/t/{rec.hashtap_qr_slug}"
                 )
             else:
                 rec.hashtap_qr_url = False

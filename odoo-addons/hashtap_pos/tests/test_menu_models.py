@@ -86,14 +86,11 @@ class TestMenuModels(TransactionCase):
         self.env["ir.config_parameter"].sudo().set_param(
             "hashtap.pwa_base_url", "https://r.test.com"
         )
-        self.env["ir.config_parameter"].sudo().set_param(
-            "hashtap.tenant_slug", "demo"
-        )
         floor = self.env["restaurant.floor"].create({"name": "F1"})
         t = self.env["restaurant.table"].create({
             "name": "C", "floor_id": floor.id, "identifier": "C",
         })
         self.assertEqual(
             t.hashtap_qr_url,
-            f"https://r.test.com/r/demo/t/{t.hashtap_qr_slug}",
+            f"https://r.test.com/r/t/{t.hashtap_qr_slug}",
         )

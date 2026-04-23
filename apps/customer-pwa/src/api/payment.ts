@@ -29,10 +29,9 @@ export class PaymentError extends Error {
 }
 
 export async function fetchPaymentMethods(
-  tenantSlug: string,
   amountKurus: number,
 ): Promise<PaymentMethodWire[]> {
-  const url = `/hashtap/payment/methods/${tenantSlug}?amount_kurus=${amountKurus}`;
+  const url = `/hashtap/payment/methods?amount_kurus=${amountKurus}`;
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) {
     throw new PaymentError('methods_fetch_failed', res.status);

@@ -63,15 +63,10 @@ class HashTapOrder(http.Controller):
         methods=["POST"],
         csrf=False,
     )
-    def create_order(self, tenant_slug=None, table_slug=None, items=None,
+    def create_order(self, table_slug=None, items=None,
                      customer_note=None, **_kw):
         items_input = items or []
         customer_note = (customer_note or "").strip()[:500]
-
-        icp = request.env["ir.config_parameter"].sudo()
-        expected_tenant = icp.get_param("hashtap.tenant_slug", "default")
-        if tenant_slug != expected_tenant:
-            return {"error": "tenant_not_found"}
 
         table = request.env["restaurant.table"].sudo().search(
             [

@@ -9,7 +9,6 @@ class TestOrderEndpoint(HttpCase):
     def setUpClass(cls):
         super().setUpClass()
         icp = cls.env["ir.config_parameter"].sudo()
-        icp.set_param("hashtap.tenant_slug", "testco")
         icp.set_param("hashtap.pwa_base_url", "https://test.example.com")
 
         cls.env["hashtap.order.line"].search([]).unlink()
@@ -62,7 +61,6 @@ class TestOrderEndpoint(HttpCase):
 
     def test_happy_path_server_computes_price(self):
         resp = self._post({
-            "tenant_slug": "testco",
             "table_slug": self.table.hashtap_qr_slug,
             "items": [
                 {"item_id": self.item_pide.id, "quantity": 2},
@@ -82,7 +80,6 @@ class TestOrderEndpoint(HttpCase):
     def test_modifier_price_added(self):
         mod_ids = self.mod_group.modifier_ids.ids
         resp = self._post({
-            "tenant_slug": "testco",
             "table_slug": self.table.hashtap_qr_slug,
             "items": [{
                 "item_id": self.item_pide.id,
@@ -97,7 +94,6 @@ class TestOrderEndpoint(HttpCase):
 
     def test_client_price_is_ignored(self):
         resp = self._post({
-            "tenant_slug": "testco",
             "table_slug": self.table.hashtap_qr_slug,
             "items": [{
                 "item_id": self.item_ayran.id,
@@ -109,17 +105,8 @@ class TestOrderEndpoint(HttpCase):
         # Server yine de kendi fiyatını koyar: 3500
         self.assertEqual(body["order"]["total_kurus"], 3500)
 
-    def test_unknown_tenant(self):
-        resp = self._post({
-            "tenant_slug": "wrongco",
-            "table_slug": self.table.hashtap_qr_slug,
-            "items": [{"item_id": self.item_ayran.id, "quantity": 1}],
-        })
-        self.assertEqual(resp.json()["result"], {"error": "tenant_not_found"})
-
     def test_unknown_item(self):
         resp = self._post({
-            "tenant_slug": "testco",
             "table_slug": self.table.hashtap_qr_slug,
             "items": [{"item_id": 99999, "quantity": 1}],
         })
@@ -127,7 +114,6 @@ class TestOrderEndpoint(HttpCase):
 
     def test_empty_cart(self):
         resp = self._post({
-            "tenant_slug": "testco",
             "table_slug": self.table.hashtap_qr_slug,
             "items": [],
         })
@@ -135,7 +121,6 @@ class TestOrderEndpoint(HttpCase):
 
     def test_modifier_from_wrong_group_rejected(self):
         resp = self._post({
-            "tenant_slug": "testco",
             "table_slug": self.table.hashtap_qr_slug,
             "items": [{
                 "item_id": self.item_ayran.id,  # ayran'ın modifieri yok
@@ -148,11 +133,11 @@ class TestOrderEndpoint(HttpCase):
     def test_concurrent_orders_get_separate_ids(self):
         slug = self.table.hashtap_qr_slug
         a = self._post({
-            "tenant_slug": "testco", "table_slug": slug,
+            "table_slug": slug,
             "items": [{"item_id": self.item_ayran.id, "quantity": 1}],
         }).json()["result"]["order"]
         b = self._post({
-            "tenant_slug": "testco", "table_slug": slug,
+            "table_slug": slug,
             "items": [{"item_id": self.item_ayran.id, "quantity": 2}],
         }).json()["result"]["order"]
         self.assertNotEqual(a["id"], b["id"])
@@ -160,7 +145,6 @@ class TestOrderEndpoint(HttpCase):
 
     def test_get_order_status(self):
         posted = self._post({
-            "tenant_slug": "testco",
             "table_slug": self.table.hashtap_qr_slug,
             "items": [{"item_id": self.item_ayran.id, "quantity": 1}],
         }).json()["result"]["order"]

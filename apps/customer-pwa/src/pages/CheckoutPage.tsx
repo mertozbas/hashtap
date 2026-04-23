@@ -41,7 +41,7 @@ function MethodIcon({ code }: { code: string }) {
 }
 
 export function CheckoutPage() {
-  const { tenantSlug, tableId } = useParams<{ tenantSlug: string; tableId: string }>();
+  const { tableId } = useParams<{ tableId: string }>();
   const [search] = useSearchParams();
   const navigate = useNavigate();
   const orderId = Number(search.get('order'));
@@ -53,7 +53,7 @@ export function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!Number.isFinite(orderId) || !tenantSlug) {
+    if (!Number.isFinite(orderId)) {
       setError('missing_order');
       setLoading(false);
       return;
@@ -61,7 +61,7 @@ export function CheckoutPage() {
     let cancelled = false;
     Promise.all([
       fetchOrder(orderId),
-      fetchPaymentMethods(tenantSlug, 0),
+      fetchPaymentMethods(0),
     ])
       .then(([o, m]) => {
         if (cancelled) return;
@@ -79,7 +79,7 @@ export function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [orderId, tenantSlug]);
+  }, [orderId]);
 
   const onPay = async () => {
     if (!order || !selected) return;
@@ -121,7 +121,7 @@ export function CheckoutPage() {
         </p>
         <div className="text-center mt-6">
           <Link
-            to={`/r/${tenantSlug}/t/${tableId}`}
+            to={`/r/t/${tableId}`}
             className="inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-stone-600 hover:text-stone-900"
           >
             <ArrowLeft className="w-3 h-3" /> Menüye dön

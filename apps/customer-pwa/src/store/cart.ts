@@ -16,17 +16,15 @@ export interface CartLine {
 export interface RecentOrder {
   orderId: number;
   reference: string;
-  tenantSlug: string;
   tableSlug: string;
   createdAt: string;
 }
 
 interface CartState {
-  tenantSlug: string | null;
   tableSlug: string | null;
   lines: CartLine[];
   recentOrders: RecentOrder[];
-  setContext: (tenantSlug: string, tableSlug: string) => void;
+  setContext: (tableSlug: string) => void;
   addItem: (line: Omit<CartLine, 'key' | 'quantity'> & { quantity?: number }) => void;
   incrementLine: (key: string) => void;
   decrementLine: (key: string) => void;
@@ -45,14 +43,13 @@ function makeKey(itemId: number, modifierIds: number[]): string {
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
-      tenantSlug: null,
       tableSlug: null,
       lines: [],
       recentOrders: [],
-      setContext: (tenantSlug, tableSlug) => {
+      setContext: (tableSlug) => {
         const prev = get();
-        if (prev.tenantSlug !== tenantSlug || prev.tableSlug !== tableSlug) {
-          set({ tenantSlug, tableSlug, lines: [] });
+        if (prev.tableSlug !== tableSlug) {
+          set({ tableSlug, lines: [] });
         }
       },
       addItem: (line) => {
@@ -104,7 +101,6 @@ export const useCart = create<CartState>()(
     {
       name: 'hashtap-cart',
       partialize: (s) => ({
-        tenantSlug: s.tenantSlug,
         tableSlug: s.tableSlug,
         lines: s.lines,
         recentOrders: s.recentOrders,

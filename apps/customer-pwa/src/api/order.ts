@@ -42,7 +42,6 @@ export interface OrderWire {
 }
 
 export interface CreateOrderInput {
-  tenantSlug: string;
   tableSlug: string;
   items: {
     itemId: number;
@@ -80,7 +79,6 @@ export async function createOrder(input: CreateOrderInput): Promise<OrderWire> {
   const result = await jsonRpc<{ order?: OrderWire; error?: string }>(
     '/hashtap/order',
     {
-      tenant_slug: input.tenantSlug,
       table_slug: input.tableSlug,
       items: input.items.map((i) => ({
         item_id: i.itemId,

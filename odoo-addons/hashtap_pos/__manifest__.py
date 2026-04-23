@@ -35,7 +35,7 @@ Detay: docs/MODULE_DESIGN.md
         "views/hashtap_kds_menu.xml",
     ],
     "external_dependencies": {
-        "python": ["requests"],
+        "python": ["requests", "iyzipay"],
     },
     "installable": True,
     "application": True,

@@ -9,7 +9,6 @@ class TestPaymentEndpoint(HttpCase):
     def setUpClass(cls):
         super().setUpClass()
         icp = cls.env["ir.config_parameter"].sudo()
-        icp.set_param("hashtap.tenant_slug", "testco")
         icp.set_param("hashtap.pwa_base_url", "https://test.example.com")
 
         cls.env["hashtap.payment.transaction"].search([]).unlink()
@@ -60,7 +59,6 @@ class TestPaymentEndpoint(HttpCase):
             data=json.dumps({
                 "jsonrpc": "2.0",
                 "params": {
-                    "tenant_slug": "testco",
                     "table_slug": self.table.hashtap_qr_slug,
                     "items": [{"item_id": self.item.id, "quantity": 2}],
                 },
@@ -86,15 +84,11 @@ class TestPaymentEndpoint(HttpCase):
 
     # ---------------------------------------------------------- tests --
     def test_list_methods_returns_active(self):
-        resp = self.url_open("/hashtap/payment/methods/testco?amount_kurus=5000")
+        resp = self.url_open("/hashtap/payment/methods?amount_kurus=5000")
         body = resp.json()
         codes = {m["code"] for m in body["methods"]}
         self.assertIn("card", codes)
         self.assertIn("pay_at_counter", codes)
-
-    def test_list_methods_wrong_tenant(self):
-        resp = self.url_open("/hashtap/payment/methods/unknown")
-        self.assertEqual(resp.status_code, 404)
 
     def test_init_online_creates_pending_tx(self):
         order = self._create_order()

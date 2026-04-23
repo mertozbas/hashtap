@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!--
+        HashTap iç sequence'ları.
+        - hashtap.order: müşteri gözüne dönen sipariş referansı (ORD-2026-000123)
+        - hashtap.payment.transaction: iç ödeme denemesi id'si (PTX-000123)
+        - hashtap.earsiv.receipt: e-Arşiv fiş kaydı id'si (ERC-000123)
+    -->
+
+    <record id="seq_hashtap_order" model="ir.sequence">
+        <field name="name">HashTap Order</field>
+        <field name="code">hashtap.order</field>
+        <field name="prefix">ORD-%(year)s-</field>
+        <field name="padding">6</field>
+        <field name="number_increment">1</field>
+        <field name="implementation">standard</field>
+    </record>
+
+    <record id="seq_hashtap_payment_transaction" model="ir.sequence">
+        <field name="name">HashTap Payment Transaction</field>
+        <field name="code">hashtap.payment.transaction</field>
+        <field name="prefix">PTX-</field>
+        <field name="padding">6</field>
+        <field name="number_increment">1</field>
+        <field name="implementation">standard</field>
+    </record>
+
+    <record id="seq_hashtap_earsiv_receipt" model="ir.sequence">
+        <field name="name">HashTap e-Arşiv Receipt</field>
+        <field name="code">hashtap.earsiv.receipt</field>
+        <field name="prefix">ERC-</field>
+        <field name="padding">6</field>
+        <field name="number_increment">1</field>
+        <field name="implementation">standard</field>
+    </record>
+</odoo>

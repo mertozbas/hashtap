@@ -9,7 +9,6 @@ class TestEArsivFlow(HttpCase):
     def setUpClass(cls):
         super().setUpClass()
         icp = cls.env["ir.config_parameter"].sudo()
-        icp.set_param("hashtap.tenant_slug", "testco")
         icp.set_param("hashtap.pwa_base_url", "https://test.example.com")
 
         cls.env["hashtap.earsiv.receipt"].search([]).unlink()
@@ -66,7 +65,6 @@ class TestEArsivFlow(HttpCase):
             data=json.dumps({
                 "jsonrpc": "2.0",
                 "params": {
-                    "tenant_slug": "testco",
                     "table_slug": self.table.hashtap_qr_slug,
                     "items": [{"item_id": self.item.id, "quantity": 2}],
                 },
@@ -151,7 +149,6 @@ class TestEArsivFlow(HttpCase):
             data=json.dumps({
                 "jsonrpc": "2.0",
                 "params": {
-                    "tenant_slug": "testco",
                     "table_slug": self.table.hashtap_qr_slug,
                     "items": [{"item_id": self.item.id, "quantity": 1}],
                 },

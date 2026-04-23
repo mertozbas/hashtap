@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!--
+        Varsayılan ödeme yöntemleri — kurulum sonrası restoran seçimine göre
+        aktive/deaktive edilir. Online yöntemlerin (card, apple_pay, google_pay)
+        çalışması için `hashtap.payment.provider` kaydı ve bir `provider_id`
+        bağlantısı gerekir (yönetici ayarlardan yapar).
+    -->
+
+    <record id="pm_card" model="hashtap.payment.method">
+        <field name="name">Kredi/Banka Kartı</field>
+        <field name="code">card</field>
+        <field name="icon">credit-card</field>
+        <field name="sequence">10</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="pm_apple_pay" model="hashtap.payment.method">
+        <field name="name">Apple Pay</field>
+        <field name="code">apple_pay</field>
+        <field name="icon">smartphone</field>
+        <field name="sequence">20</field>
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="pm_google_pay" model="hashtap.payment.method">
+        <field name="name">Google Pay</field>
+        <field name="code">google_pay</field>
+        <field name="icon">smartphone</field>
+        <field name="sequence">30</field>
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="pm_pay_at_counter" model="hashtap.payment.method">
+        <field name="name">Kasada Öde</field>
+        <field name="code">pay_at_counter</field>
+        <field name="icon">wallet</field>
+        <field name="sequence">40</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="pm_cash" model="hashtap.payment.method">
+        <field name="name">Nakit</field>
+        <field name="code">cash</field>
+        <field name="icon">wallet</field>
+        <field name="sequence">50</field>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

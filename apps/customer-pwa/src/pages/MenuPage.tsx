@@ -25,21 +25,19 @@ function priceLabel(kurus: number, currency: string) {
 }
 
 export function MenuPage() {
-  const { tenantSlug, tableId } = useParams<{ tenantSlug: string; tableId: string }>();
+  const { tableId } = useParams<{ tableId: string }>();
   const [state, setState] = useState<State>({ status: 'loading' });
   const setContext = useCart((s) => s.setContext);
   const lineCount = useCart((s) => s.lineCount());
   const totalKurus = useCart((s) => s.totalKurus());
   const recentOrders = useCart((s) => s.recentOrders);
-  const activeOrder = recentOrders.find(
-    (o) => o.tenantSlug === tenantSlug && o.tableSlug === tableId,
-  );
+  const activeOrder = recentOrders.find((o) => o.tableSlug === tableId);
 
   useEffect(() => {
-    if (!tenantSlug || !tableId) return;
-    setContext(tenantSlug, tableId);
+    if (!tableId) return;
+    setContext(tableId);
     let cancelled = false;
-    fetchMenu(tenantSlug, tableId)
+    fetchMenu(tableId)
       .then((data) => {
         if (!cancelled) setState({ status: 'ready', data });
       })
@@ -51,7 +49,7 @@ export function MenuPage() {
     return () => {
       cancelled = true;
     };
-  }, [tenantSlug, tableId, setContext]);
+  }, [tableId, setContext]);
 
   if (state.status === 'loading') {
     return (
@@ -65,11 +63,9 @@ export function MenuPage() {
 
   if (state.status === 'error') {
     const message =
-      state.code === 'tenant_not_found'
-        ? 'Restoran bulunamadı.'
-        : state.code === 'table_not_found'
-          ? 'Bu masa sistemde kayıtlı değil.'
-          : 'Menü yüklenemedi.';
+      state.code === 'table_not_found'
+        ? 'Bu masa sistemde kayıtlı değil.'
+        : 'Menü yüklenemedi.';
     return (
       <Layout>
         <p className="font-serif italic text-stone-600 text-center pt-16">{message}</p>
@@ -77,10 +73,10 @@ export function MenuPage() {
     );
   }
 
-  const { tenant, table, categories } = state.data;
+  const { restaurant, table, categories } = state.data;
 
   return (
-    <Layout brandName={tenant.name}>
+    <Layout brandName={restaurant.name}>
       <section className="text-center pb-8">
         <motion.p
           initial={{ opacity: 0 }}
@@ -114,7 +110,7 @@ export function MenuPage() {
               </div>
               <ul className="space-y-5">
                 {cat.items.map((item) => (
-                  <MenuItemRow key={item.id} item={item} currency={tenant.currency} />
+                  <MenuItemRow key={item.id} item={item} currency={restaurant.currency} />
                 ))}
               </ul>
             </motion.section>
@@ -132,7 +128,7 @@ export function MenuPage() {
           className="fixed left-1/2 -translate-x-1/2 bottom-4 w-[calc(100%-2rem)] max-w-xl z-50"
         >
           <Link
-            to={`/r/${tenantSlug}/t/${tableId}/cart`}
+            to={`/r/t/${tableId}/cart`}
             className="flex items-center justify-between gap-3 bg-stone-900 text-white px-5 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.2)]"
           >
             <span className="flex items-center gap-3">
@@ -140,7 +136,7 @@ export function MenuPage() {
               <span className="font-serif italic text-lg">{lineCount} kalem</span>
             </span>
             <span className="font-serif text-lg">
-              {priceLabel(totalKurus, tenant.currency)}
+              {priceLabel(totalKurus, restaurant.currency)}
             </span>
             <span className="text-[10px] tracking-[0.2em] uppercase">Sepet →</span>
           </Link>

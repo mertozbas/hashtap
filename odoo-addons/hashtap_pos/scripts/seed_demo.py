@@ -7,7 +7,6 @@
 
 Idempotent: tekrar çalıştırınca önce mevcut HashTap verisini temizler.
 """
-env["ir.config_parameter"].sudo().set_param("hashtap.tenant_slug", "testco")
 env["ir.config_parameter"].sudo().set_param(
     "hashtap.pwa_base_url", "http://localhost:5173"
 )
@@ -180,8 +179,8 @@ env.cr.commit()
 
 print("=" * 60)
 print("Demo verisi hazır.")
-print(f"  Tenant: testco  ({company.name})")
+print(f"  Restoran: {company.name}")
 print(f"  Masa slug: {demo_table.hashtap_qr_slug}")
-print(f"  PWA URL: http://localhost:5173/r/testco/t/{demo_table.hashtap_qr_slug}")
-print(f"  API URL: http://localhost:8069/hashtap/menu/testco/{demo_table.hashtap_qr_slug}")
+print(f"  PWA URL: http://localhost:5173/r/t/{demo_table.hashtap_qr_slug}")
+print(f"  API URL: http://localhost:8069/hashtap/menu/{demo_table.hashtap_qr_slug}")
 print("=" * 60)

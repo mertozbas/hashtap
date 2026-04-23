@@ -70,14 +70,10 @@ class HashTapPayment(http.Controller):
 
     # ---------------------------------------------------------- init ----
     @http.route(
-        "/hashtap/payment/methods/<string:tenant_slug>",
+        "/hashtap/payment/methods",
         type="http", auth="public", methods=["GET"], csrf=False,
     )
-    def list_methods(self, tenant_slug, **kw):
-        icp = request.env["ir.config_parameter"].sudo()
-        expected = icp.get_param("hashtap.tenant_slug", "default")
-        if tenant_slug != expected:
-            return _json({"error": "tenant_not_found"}, status=404)
+    def list_methods(self, **kw):
         amount = int(kw.get("amount_kurus") or 0)
         methods = request.env["hashtap.payment.method"].sudo().list_for_tenant(
             amount_kurus=amount,

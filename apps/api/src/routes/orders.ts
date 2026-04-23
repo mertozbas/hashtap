@@ -1,10 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { resolveTenantDb } from '../tenant-resolver.js';
+import { env } from '../config/env.js';
 import { odooPost, odooGet } from '../odoo-client.js';
 
 const createSchema = z.object({
-  tenant_slug: z.string(),
   table_slug: z.string(),
   items: z.array(z.object({
     item_id: z.number(),
@@ -18,17 +17,15 @@ const createSchema = z.object({
 export async function orderRoutes(app: FastifyInstance) {
   app.post('/', async (req, reply) => {
     const body = createSchema.parse(req.body);
-    const db = await resolveTenantDb(body.tenant_slug);
-    const data = await odooPost(db, '/hashtap/order', body);
+    const data = await odooPost(env.ODOO_DB, '/hashtap/order', body);
     return reply.send(data);
   });
 
-  app.get<{ Params: { tenantSlug: string; orderId: string } }>(
-    '/:tenantSlug/:orderId',
+  app.get<{ Params: { orderId: string } }>(
+    '/:orderId',
     async (req, reply) => {
-      const { tenantSlug, orderId } = req.params;
-      const db = await resolveTenantDb(tenantSlug);
-      const data = await odooGet(db, `/hashtap/order/${orderId}/status`);
+      const { orderId } = req.params;
+      const data = await odooGet(env.ODOO_DB, `/hashtap/order/${orderId}/status`);
       return reply.send(data);
     },
   );

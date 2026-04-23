@@ -5,13 +5,13 @@ Müşteri PWA'sı — QR okuyan müşterinin telefonda kullandığı uygulama. T
 ## Akış
 
 ```
-/r/:tenantSlug/t/:tableSlug            menü
-/r/:tenantSlug/t/:tableSlug/cart       sepet
-/r/:tenantSlug/t/:tableSlug/pay        ödeme (iyzico 3DS redirect)
-/order/:orderId                        sipariş durumu + e-Arşiv fişi
+/r/t/:tableSlug            menü
+/r/t/:tableSlug/cart       sepet
+/r/t/:tableSlug/pay        ödeme (iyzico 3DS redirect)
+/order/:orderId            sipariş durumu + e-Arşiv fişi
 ```
 
-Gateway uç noktaları: `GET /v1/menu/:tenantSlug/:tableSlug`, `POST /v1/orders`, `POST /v1/payments/3ds/start`.
+Gateway uç noktaları: `GET /v1/menu/:tableSlug`, `POST /v1/orders`, `POST /v1/payments/3ds/start`.
 
 ## Tasarım ilkeleri
 

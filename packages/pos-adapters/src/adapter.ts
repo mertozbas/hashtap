@@ -35,12 +35,13 @@ export interface PosAdapter {
 }
 
 export class PosAdapterError extends Error {
+  override readonly name = 'PosAdapterError';
+
   constructor(
     message: string,
     public readonly retryable: boolean,
-    public readonly cause?: unknown,
+    public override readonly cause?: unknown,
   ) {
     super(message);
-    this.name = 'PosAdapterError';
   }
 }

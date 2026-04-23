@@ -56,9 +56,7 @@ export function OrderStatusPage() {
   const recent = useCart((s) => s.recentOrders);
   const forgetOrder = useCart((s) => s.forgetOrder);
   const context = recent.find((o) => o.orderId === Number(orderId));
-  const menuUrl = context
-    ? `/r/${context.tenantSlug}/t/${context.tableSlug}`
-    : null;
+  const menuUrl = context ? `/r/t/${context.tableSlug}` : null;
 
   useEffect(() => {
     if (!orderId) return;
@@ -198,7 +196,7 @@ export function OrderStatusPage() {
         {(order.payment_state === 'unpaid' || order.payment_state === 'failed')
           && context ? (
           <Link
-            to={`/r/${context.tenantSlug}/t/${context.tableSlug}/pay?order=${order.id}`}
+            to={`/r/t/${context.tableSlug}/pay?order=${order.id}`}
             className="inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-white bg-stone-900 hover:bg-stone-800 px-4 py-2"
           >
             Ödemeyi Tekrar Dene

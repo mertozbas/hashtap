@@ -1,5 +1,3 @@
-version: "3.9"
-
 # Dev stack: Odoo 17 + dedicated Postgres + Redis (queue_job backend).
 # Main repo docker-compose.yml (./infra/docker-compose.yml) is for non-Odoo
 # services (eski dev DB + adminer). Bu dosya Odoo'ya özel; iki compose

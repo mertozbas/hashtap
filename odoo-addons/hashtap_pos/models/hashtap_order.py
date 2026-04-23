@@ -103,9 +103,10 @@ class HashtapOrder(models.Model):
         store=True,
         currency_field="currency_id",
     )
-    currency = fields.Char(default="TRY", required=True)
+    currency = fields.Char(string="Para Birimi (kod)", default="TRY", required=True)
     currency_id = fields.Many2one(
         "res.currency",
+        string="Para Birimi",
         compute="_compute_currency_id",
         store=True,
     )

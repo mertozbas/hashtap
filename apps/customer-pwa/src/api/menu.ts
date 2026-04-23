@@ -1,10 +1,9 @@
 /**
- * Odoo `/hashtap/menu/<tenant>/<table>` yanıtı.
+ * Odoo `/hashtap/menu/<table_slug>` yanıtı.
  * Kaynak: odoo-addons/hashtap_pos/controllers/menu.py
  */
 export interface MenuResponse {
-  tenant: {
-    slug: string;
+  restaurant: {
     name: string;
     currency: string;
     language: 'tr' | 'en';
@@ -53,15 +52,14 @@ export interface Modifier {
 }
 
 export interface MenuError {
-  error: 'tenant_not_found' | 'table_not_found';
+  error: 'table_not_found';
 }
 
 export async function fetchMenu(
-  tenantSlug: string,
   tableSlug: string,
   lang: 'tr' | 'en' = 'tr',
 ): Promise<MenuResponse> {
-  const url = `/hashtap/menu/${encodeURIComponent(tenantSlug)}/${encodeURIComponent(tableSlug)}?lang=${lang}`;
+  const url = `/hashtap/menu/${encodeURIComponent(tableSlug)}?lang=${lang}`;
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) {
     let code: MenuError['error'] | 'http_error' = 'http_error';

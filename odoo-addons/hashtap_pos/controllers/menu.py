@@ -69,27 +69,18 @@ def _serialize_category(cat, lang):
 class HashTapMenu(http.Controller):
     """Public menu endpoint consumed by the customer PWA (via gateway).
 
-    Single-tenant MVP: tenant_slug is validated against the
-    `hashtap.tenant_slug` config parameter. Multi-tenant routing is the
-    gateway's responsibility (Faz 7).
+    On-premise tek-kiracı: bu instance tek bir restoran için çalışır;
+    `res.company` aktif şirketi verir.
     """
 
     @http.route(
-        "/hashtap/menu/<string:tenant_slug>/<string:table_slug>",
+        "/hashtap/menu/<string:table_slug>",
         type="http",
         auth="public",
         methods=["GET"],
         csrf=False,
     )
-    def get_menu(self, tenant_slug, table_slug, **kw):
-        icp = request.env["ir.config_parameter"].sudo()
-        expected_tenant = icp.get_param("hashtap.tenant_slug", "default")
-
-        if tenant_slug != expected_tenant:
-            return request.make_json_response(
-                {"error": "tenant_not_found"}, status=404
-            )
-
+    def get_menu(self, table_slug, **kw):
         table = (
             request.env["restaurant.table"]
             .sudo()
@@ -119,8 +110,7 @@ class HashTapMenu(http.Controller):
         )
 
         payload = {
-            "tenant": {
-                "slug": tenant_slug,
+            "restaurant": {
                 "name": company.name,
                 "currency": company.currency_id.name,
                 "language": lang,

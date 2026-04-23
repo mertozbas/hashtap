@@ -3,11 +3,11 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import { env } from './config/env.js';
-import { logger } from './config/logger.js';
+import { loggerConfig } from './config/logger.js';
 import { registerRoutes } from './routes/index.js';
 
 async function main() {
-  const app = Fastify({ loggerInstance: logger });
+  const app = Fastify({ logger: loggerConfig });
 
   await app.register(helmet);
   await app.register(cors, { origin: true, credentials: true });
@@ -19,9 +19,9 @@ async function main() {
 
   try {
     await app.listen({ port: env.API_PORT, host: '0.0.0.0' });
-    logger.info({ port: env.API_PORT }, 'HashTap API ready');
+    app.log.info({ port: env.API_PORT }, 'HashTap API ready');
   } catch (err) {
-    logger.error(err, 'failed to start');
+    app.log.error(err, 'failed to start');
     process.exit(1);
   }
 }
