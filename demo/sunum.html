@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HashTap, Satış Sunumu</title>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  body { background: #000; overflow: hidden; }
+  deck-stage > section {
+    width: 1920px; height: 1080px;
+    background: var(--gradient-page);
+    color: var(--text-primary);
+    display: flex; flex-direction: column;
+    padding: 96px 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  .eyebrow { font-size: 16px; color: var(--brand-500); font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; margin-bottom: 28px; display: flex; align-items: center; gap: 14px;}
+  .eyebrow::before { content:''; width: 36px; height: 2px; background: var(--brand-500); }
+  h1.title { font-size: 104px; font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; margin: 0 0 32px; text-wrap: balance; }
+  h2.title { font-size: 72px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 24px; text-wrap: balance; }
+  p.lede { font-size: 28px; color: var(--text-secondary); line-height: 1.45; max-width: 1200px; margin: 0; }
+  .footer { position: absolute; bottom: 48px; left: 120px; right: 120px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--text-muted); font-family: var(--font-mono); }
+  .footer img { height: 20px; opacity: 0.7; }
+  .page-num { letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .cards-grid { display: grid; gap: 24px; margin-top: 40px; }
+  .cards-3 { grid-template-columns: repeat(3, 1fr); }
+  .cards-4 { grid-template-columns: repeat(4, 1fr); }
+  .cards-2 { grid-template-columns: repeat(2, 1fr); }
+  .card { background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 40px; backdrop-filter: blur(20px); }
+  .card-num { font-size: 14px; font-weight: 700; color: var(--brand-500); text-transform: uppercase; letter-spacing: 0.12em; font-family: var(--font-mono); }
+  .card h3 { font-size: 32px; font-weight: 700; margin: 14px 0 12px; letter-spacing: -0.02em; line-height: 1.15; }
+  .card p { font-size: 19px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+
+  .stat { text-align: left; }
+  .stat .n { font-size: 120px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--brand-500); font-family: var(--font-mono); }
+  .stat .lbl { font-size: 22px; color: var(--text-secondary); margin-top: 12px; line-height: 1.3; }
+
+  .flow { display: flex; align-items: center; gap: 24px; margin-top: 50px; flex-wrap: wrap;}
+  .flow-step { flex: 1; min-width: 200px; background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 32px 24px; text-align: center; }
+  .flow-step .ico { font-size: 48px; margin-bottom: 16px; }
+  .flow-step .ttl { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .flow-step .sub { font-size: 15px; color: var(--text-muted); }
+  .flow-arrow { font-size: 28px; color: var(--brand-500); font-weight: 700; }
+
+  table.compare { width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 18px; }
+  table.compare th, table.compare td { padding: 20px 20px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+  table.compare th { font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 600; }
+  table.compare td.brand { color: var(--brand-500); font-weight: 600; }
+
+  .bg-mark { position: absolute; right: -80px; top: -80px; width: 600px; height: 600px; opacity: 0.06; }
+  .bg-mark2 { position: absolute; left: 60%; top: -200px; width: 900px; height: 900px; background: radial-gradient(circle, var(--brand-glow) 0%, transparent 60%); opacity: 0.6; pointer-events:none;}
+
+  .pricing { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 32px; }
+  .price-card { background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: 22px; padding: 32px 24px; position: relative; }
+  .price-card.featured { background: linear-gradient(180deg, rgba(255,107,61,0.12), var(--bg-glass)); border-color: var(--brand-500); }
+  .price-card .tag { font-size: 12px; font-weight: 700; color: var(--brand-500); text-transform: uppercase; letter-spacing: 0.12em; }
+  .price-card h3 { font-size: 24px; margin: 10px 0 14px; font-weight: 700; line-height: 1.2; }
+  .price-card .price { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; font-family: var(--font-mono); color: var(--text-primary); }
+  .price-card .price small { font-size: 14px; color: var(--text-muted); font-weight: 500; display: block; margin-top: 4px; font-family: var(--font-sans); line-height: 1.4; }
+  .price-card ul { list-style: none; padding: 0; margin: 20px 0 0; }
+  .price-card li { padding: 8px 0; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: flex-start; gap: 8px; }
+  .price-card li::before { content:'✓'; color: var(--brand-500); font-weight: 700; }
+
+  .hero-logo { width: 160px; height: 160px; margin-bottom: 48px; }
+  .hero { justify-content: center; }
+  .hero h1.title { font-size: 180px; margin-bottom: 24px; }
+  .hero .tagline { font-size: 36px; color: var(--text-secondary); max-width: 1200px; line-height: 1.35; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 40px; }
+  .kpi { background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 32px; }
+  .kpi .n { font-size: 56px; font-weight: 800; color: var(--brand-500); font-family: var(--font-mono); letter-spacing: -0.03em; line-height: 1; }
+  .kpi .lbl { font-size: 15px; color: var(--text-secondary); margin-top: 10px; line-height: 1.4; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 40px; }
+  .list-clean { list-style: none; padding: 0; margin: 0; }
+  .list-clean li { padding: 18px 0; border-bottom: 1px solid var(--border-subtle); font-size: 20px; display: flex; gap: 14px; }
+  .list-clean li .marker { color: var(--brand-500); font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<deck-stage>
+
+<!-- 01, Hero -->
+<section class="hero" data-screen-label="01 Hero">
+  <div class="bg-mark2"></div>
+  <img src="assets/logo-mark.svg" class="hero-logo"/>
+  <div class="eyebrow">Restoranlar için QR sipariş ve ödeme platformu</div>
+  <h1 class="title">HashTap</h1>
+  <p class="tagline">Müşteri QR'ı okutur, telefonundan öder.<br/>Sipariş mutfağa, para doğrudan restoranın hesabına gider.</p>
+  <div class="footer"><span>HashTap · Satış Sunumu · 2026</span><span class="page-num">01 / 14</span></div>
+</section>
+
+<!-- 02, Problem -->
+<section data-screen-label="02 Problem">
+  <div class="eyebrow">Şu an restoranınızda olan şey</div>
+  <h2 class="title">Garson 4 kez gider.<br/>Müşteri 12 dakika bekler.</h2>
+  <div class="cards-grid cards-4" style="margin-top:60px;">
+    <div class="card"><div class="card-num">Problem 01</div><h3>Bakma</h3><p>Garson masaya gelir, menü verir, selamlaşır, çekilir.</p></div>
+    <div class="card"><div class="card-num">Problem 02</div><h3>Sipariş alma</h3><p>Garson tekrar gelir, el yazısı ile alır, kasaya elden girer.</p></div>
+    <div class="card"><div class="card-num">Problem 03</div><h3>Hesap</h3><p>"Hesabı alalım" sonrası 8-12 dakika bekleme. Kart cihazı gelir, gitmesi beklenir.</p></div>
+    <div class="card"><div class="card-num">Problem 04</div><h3>Fiş</h3><p>Fiş basılır, imzalanır, bahşiş hesaplanır. Bir masanın devri = 90+ dk.</p></div>
+  </div>
+  <div class="footer"><span>Problem</span><span class="page-num">02 / 14</span></div>
+</section>
+
+<!-- 03, Solution flow -->
+<section data-screen-label="03 Çözüm">
+  <div class="eyebrow">HashTap nasıl çalışır</div>
+  <h2 class="title">QR okut. Telefonundan öde.<br/>Hepsi 90 saniyede.</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="ico">📱</div><div class="ttl">QR'ı oku</div><div class="sub">3 saniye</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="ico">📖</div><div class="ttl">Menüyü gör</div><div class="sub">Kendi telefonunda</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="ico">🛒</div><div class="ttl">Sipariş ver</div><div class="sub">Sepete ekle</div></div>
+  </div>
+  <div class="flow" style="margin-top:28px;">
+    <div class="flow-step"><div class="ico">💳</div><div class="ttl">Öde</div><div class="sub">Apple / Google Pay</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="ico">🍳</div><div class="ttl">Mutfak fişi düşer</div><div class="sub">Anında</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="ico">🍽</div><div class="ttl">Garson getirir</div><div class="sub">Her zamanki gibi</div></div>
+  </div>
+  <p style="margin-top:60px; font-size:22px; color: var(--text-secondary); max-width:1400px;">
+    <strong style="color: var(--text-primary);">Garson hâlâ servisi yapar.</strong> "Afiyet olsun" der, tabakları toplar. HashTap yalnızca sipariş alma ve ödeme sürecini telefona taşır, restoran ruhunu değil.
+  </p>
+  <div class="footer"><span>Çözüm</span><span class="page-num">03 / 14</span></div>
+</section>
+
+<!-- 04, 4 Surfaces -->
+<section data-screen-label="04 Yüzeyler">
+  <div class="eyebrow">Tek pakette 4 yüzey</div>
+  <h2 class="title">Müşteri, mutfak, garson,<br/>yönetim, hepsi bizde.</h2>
+  <div class="cards-grid cards-4" style="margin-top:50px;">
+    <div class="card">
+      <div class="card-num">01 · Müşteri</div>
+      <h3>Mobil PWA</h3>
+      <p>QR → menü → sepet → 3DS ödeme. TR + EN. Apple / Google Pay. Kurulum gerektirmez, tarayıcıdan açılır.</p>
+    </div>
+    <div class="card">
+      <div class="card-num">02 · Mutfak</div>
+      <h3>KDS ekranı</h3>
+      <p>21" dokunmatik ekran. Yeni / Hazırlanıyor / Hazır kolonları. 10dk/20dk uyarısı. Sesli bildirim.</p>
+    </div>
+    <div class="card">
+      <div class="card-num">03 · Garson</div>
+      <h3>Tablet app</h3>
+      <p>8" Android tablet. Masa durumu, aktif adisyon, "hazır" alarmı. Cepteki ikinci servis ekibi gibi.</p>
+    </div>
+    <div class="card">
+      <div class="card-num">04 · Patron</div>
+      <h3>Yönetim paneli</h3>
+      <p>Masa planı, canlı sipariş akışı, menü editörü, raporlar. Tarayıcıdan. iyzico + e-Arşiv + yedek durumu.</p>
+    </div>
+  </div>
+  <div class="footer"><span>Ürün</span><span class="page-num">04 / 14</span></div>
+</section>
+
+<!-- 05, Why us / Differentiator -->
+<section data-screen-label="05 Fark">
+  <div class="eyebrow">Bizim farkımız</div>
+  <h2 class="title">Para size gelir.<br/>Biz hiç dokunmuyoruz.</h2>
+  <div class="split">
+    <div>
+      <p class="lede" style="font-size:22px; margin-bottom:24px;">Çoğu rakipte müşterinin ödediği para önce rakip firmaya geçer, oradan restoran hesabına 7-30 gün içinde yatar. HashTap'te böyle değil.</p>
+      <ul class="list-clean">
+        <li><span class="marker">→</span><div>Müşterinin kartından doğrudan sizin merchant hesabınıza</div></li>
+        <li><span class="marker">→</span><div>T+1 / T+2 yatış, iyzico standardı</div></li>
+        <li><span class="marker">→</span><div>HashTap'in işlem komisyonu yok · sadece iyzico oranı (~%1.7)</div></li>
+        <li><span class="marker">→</span><div>e-Arşiv fişi otomatik · GİB'e anında bildirim</div></li>
+      </ul>
+    </div>
+    <div style="background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 40px; font-family: var(--font-mono); font-size: 18px; line-height: 1.8;">
+      <div style="color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 20px;">Para akışı</div>
+      <div>Müşteri ödemesi</div>
+      <div style="color: var(--brand-500); margin: 4px 0;">↓</div>
+      <div>iyzico güvenli katman (3DS)</div>
+      <div style="color: var(--brand-500); margin: 4px 0;">↓</div>
+      <div style="color: var(--brand-500); font-weight: 700;">Sizin banka hesabınız</div>
+      <div style="color: var(--text-muted); margin-top: 24px; font-size: 14px;">HashTap paraya hiç dokunmaz.<br/>Sadece "ödemeyi tetikleyen" sistemiz.</div>
+    </div>
+  </div>
+  <div class="footer"><span>Fark</span><span class="page-num">05 / 14</span></div>
+</section>
+
+<!-- 06, Works with existing -->
+<section data-screen-label="06 Uyum">
+  <div class="eyebrow">Mevcut sisteminizle çalışır</div>
+  <h2 class="title">Hiçbir şeyi değiştirmiyoruz.<br/>Üstüne ekliyoruz.</h2>
+  <table class="compare">
+    <thead><tr><th>Sisteminiz</th><th>Bağlantı yöntemimiz</th><th>Ek donanım</th></tr></thead>
+    <tbody>
+      <tr><td>SambaPOS</td><td class="brand">Doğrudan API entegrasyonu</td><td style="color:var(--text-muted);">Yok</td></tr>
+      <tr><td>Adisyo</td><td class="brand">Doğrudan API entegrasyonu</td><td style="color:var(--text-muted);">Yok</td></tr>
+      <tr><td>Mikro / Logo / Profit</td><td class="brand">Köprü yazılımı (yerel agent)</td><td style="color:var(--text-muted);">Yok</td></tr>
+      <tr><td>POS yazılımı yok</td><td class="brand">Tam HashTap paketi</td><td>Küçük Wi-Fi cihazımız</td></tr>
+      <tr><td>Yazar kasa + yazıcı</td><td class="brand">Plug &amp; play print-bridge</td><td>Bizden</td></tr>
+    </tbody>
+  </table>
+  <p class="lede" style="margin-top: 40px;"><strong style="color: var(--brand-500);">Tek sözümüz:</strong> ne olursa olsun çözüm üretiyoruz. Ön incelemede sisteminize bakar, size özel bağlantı planı çıkarırız.</p>
+  <div class="footer"><span>Uyum</span><span class="page-num">06 / 14</span></div>
+</section>
+
+<!-- 07, Benefits numbers -->
+<section data-screen-label="07 Faydalar">
+  <div class="eyebrow">Restoranınıza etki</div>
+  <h2 class="title">Sayılar konuşuyor.</h2>
+  <div class="kpi-row">
+    <div class="kpi"><div class="n">+%22</div><div class="lbl">Masa devir oranı · yoğun saatlerde</div></div>
+    <div class="kpi"><div class="n">+%15</div><div class="lbl">Ortalama sepet · turistik işletmede</div></div>
+    <div class="kpi"><div class="n">−%40</div><div class="lbl">Garson başına ayağa kalkma sayısı</div></div>
+    <div class="kpi"><div class="n">0</div><div class="lbl">Sipariş hatası (yanlış duyma)</div></div>
+  </div>
+  <div class="kpi-row" style="margin-top: 24px;">
+    <div class="kpi"><div class="n">70-85%</div><div class="lbl">Müşteri QR'ı kendiliğinden tercih ediyor</div></div>
+    <div class="kpi"><div class="n">12 dk</div><div class="lbl">Eski sistemde sipariş-ödeme bekleme · şimdi 0</div></div>
+    <div class="kpi"><div class="n">7/24</div><div class="lbl">Sipariş açık · menü hep güncel</div></div>
+    <div class="kpi"><div class="n">EN+TR</div><div class="lbl">Çoklu dil · turist trafiğinde kritik</div></div>
+  </div>
+  <div class="footer"><span>Etki</span><span class="page-num">07 / 14</span></div>
+</section>
+
+<!-- 08, Installation -->
+<section data-screen-label="08 Kurulum">
+  <div class="eyebrow">Kurulum süreci</div>
+  <h2 class="title">Bir akşamda hazır.</h2>
+  <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-top: 50px;">
+    <InstallStep n="1" t="Keşif" s="POS, yazıcı, internet kontrolü" time="1 ziyaret"/>
+    <InstallStep n="2" t="Kurulum" s="Kasa PC'ye Docker + HashTap" time="90 dk"/>
+    <InstallStep n="3" t="Menü" s="Excel'den import veya manuel" time="60 dk"/>
+    <InstallStep n="4" t="Donanım" s="Yazıcı, KDS, tablet bağlantı" time="90 dk"/>
+    <InstallStep n="5" t="Test" s="Uçtan uca 3 masa, 3 ödeme yolu" time="60 dk"/>
+    <InstallStep n="6" t="Teslim" s="Eğitim + ilk akşam yanınızda" time="2 saat"/>
+  </div>
+  <div style="margin-top: 60px; background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 32px; display: flex; align-items: center; gap: 32px;">
+    <div style="font-size: 88px; font-weight: 800; color: var(--brand-500); font-family: var(--font-mono); letter-spacing: -0.03em;">4-8<span style="font-size: 28px; color: var(--text-secondary);">saat</span></div>
+    <div>
+      <div style="font-size: 24px; font-weight: 700;">IT ekibimiz kurulum günü restoranınızda</div>
+      <div style="font-size: 17px; color: var(--text-secondary); margin-top: 8px;">Kapalı saatlerde çalışırız. Ertesi servis canlı. İlk 72 saat yakın izleme, bir aksaklık olursa 30 dakikada müdahale.</div>
+    </div>
+  </div>
+  <div class="footer"><span>Kurulum</span><span class="page-num">08 / 14</span></div>
+</section>
+
+<!-- 09, Security -->
+<section data-screen-label="09 Güvenlik">
+  <div class="eyebrow">Veri güvenliği &amp; yasa uyumu</div>
+  <h2 class="title">Veri kendi mekânınızda.<br/>Biz dokunmuyoruz.</h2>
+  <div class="cards-grid cards-3" style="margin-top: 50px;">
+    <div class="card">
+      <div class="card-num">Veri yeri</div>
+      <h3>On-premise</h3>
+      <p>Tüm müşteri verileriniz kendi restoranınızdaki bilgisayarda. HashTap'in bulutunda durmaz. KVKK uyumlu.</p>
+    </div>
+    <div class="card">
+      <div class="card-num">Yedekleme</div>
+      <h3>Şifreli gecelik</h3>
+      <p>Her gece 04:00'te Backblaze B2 EU-Central'e şifreli yedek. İçeriğini biz de göremeyiz. Felaket anında 4 saatte kurtarma.</p>
+    </div>
+    <div class="card">
+      <div class="card-num">Ödeme</div>
+      <h3>PCI SAQ-A</h3>
+      <p>Kart bilgisini biz saklamayız. iyzico PCI-DSS sertifikalı. 3DS tüm kart ödemelerinde zorunlu.</p>
+    </div>
+  </div>
+  <div class="footer"><span>Güvenlik</span><span class="page-num">09 / 14</span></div>
+</section>
+
+<!-- 10, Pricing -->
+<section data-screen-label="10 Fiyat">
+  <div class="eyebrow">Fiyatlandırma</div>
+  <h2 class="title" style="font-size: 60px;">Dört paket.<br/>Mekanınıza göre seçin.</h2>
+  <div class="pricing">
+    <div class="price-card">
+      <div class="tag">Paket A</div>
+      <h3>QR Menü + Ödeme</h3>
+      <div class="price">80.000 ₺<small>tek seferlik kurulum</small></div>
+      <ul>
+        <li>HashTap QR menü yazılımı</li>
+        <li>Müşteri menüden sipariş verir</li>
+        <li>Telefondan ödeme alır</li>
+        <li>Mevcut sisteminiz aynen kalır</li>
+        <li>Menü aktarımı + QR baskısı</li>
+        <li>Personel eğitimi</li>
+      </ul>
+    </div>
+    <div class="price-card">
+      <div class="tag">Paket B</div>
+      <h3>QR Menü + Donanım</h3>
+      <div class="price">120.000 ₺<small>tek seferlik kurulum</small></div>
+      <ul>
+        <li>Paket A'daki her şey</li>
+        <li>QR menü için donanım dahil</li>
+        <li>Masa QR stantları</li>
+        <li>Wi-Fi + ağ altyapısı</li>
+        <li>Baskı ve yerleşim</li>
+        <li>Saha kurulumu</li>
+      </ul>
+    </div>
+    <div class="price-card featured">
+      <div class="tag">Paket C · POPÜLER</div>
+      <h3>Yazılım + Eksik Donanım</h3>
+      <div class="price">200.000 ₺<small>tek seferlik kurulum</small></div>
+      <ul>
+        <li>Paket B'deki her şey</li>
+        <li>Termal yazıcı (ESC/POS)</li>
+        <li>Garson tableti (8" Android)</li>
+        <li>Mutfak KDS ekranı</li>
+        <li>Print-bridge cihazı</li>
+        <li>Eksik donanımlar tamamlanır</li>
+      </ul>
+    </div>
+    <div class="price-card">
+      <div class="tag">Paket D</div>
+      <h3>Full Kurulum</h3>
+      <div class="price">350.000 ₺<small>tek seferlik kurulum</small></div>
+      <ul>
+        <li>Tam HashTap bundle</li>
+        <li>HashTap Kasa Pro (15.6")</li>
+        <li>HashTap Mutfak Ekranı (21.5")</li>
+        <li>Tüm donanımlar sıfırdan</li>
+        <li>Öncelikli destek</li>
+        <li>Gelişmiş raporlama modülü</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 28px; background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px;">
+    <div>
+      <div style="font-size: 12px; font-weight: 700; color: var(--brand-500); text-transform: uppercase; letter-spacing: 0.12em;">Aylık Bakım (opsiyonel)</div>
+      <div style="font-size: 15px; color: var(--text-secondary); margin-top: 4px;">Güncellemeler, uzaktan destek, yedekleme izleme, arıza müdahalesi</div>
+    </div>
+    <div style="font-size: 32px; font-weight: 800; font-family: var(--font-mono); letter-spacing: -0.02em;">1.500 ₺<span style="font-size: 15px; color: var(--text-muted); font-weight: 500;"> /ay</span></div>
+  </div>
+  <p style="margin-top: 20px; font-size: 14px; color: var(--text-muted); text-align:center;">Fiyatlar pilot öncesi çalışma tahminidir; restoranınızın büyüklüğüne göre netleşir. Bakım yenilemezseniz sistem çalışmaya devam eder. Veri ve yazılım sizin.</p>
+  <div class="footer"><span>Fiyat</span><span class="page-num">10 / 14</span></div>
+</section>
+
+<!-- 11, FAQ -->
+<section data-screen-label="11 SSS">
+  <div class="eyebrow">Sık sorulan sorular</div>
+  <h2 class="title">Aklınızdaki sorular.</h2>
+  <div class="cards-grid cards-2" style="margin-top: 40px;">
+    <div class="card"><h3 style="color: var(--brand-500); font-size: 22px;">Müşterilerim telefon kullanmayı bilmezse?</h3><p>Garsonunuz hâlâ klasik şekilde sipariş alabilir. HashTap ek bir kanaldır. Pilot restoranlarda müşterilerin %70-85'i kendiliğinden QR'ı tercih ediyor.</p></div>
+    <div class="card"><h3 style="color: var(--brand-500); font-size: 22px;">İnternet kesilirse?</h3><p>Print-bridge cihazımızda 5 dakikalık yerel buffer var. İnternet gelince otomatik gönderir. Mutfak, sipariş, KDS çalışmaya devam eder.</p></div>
+    <div class="card"><h3 style="color: var(--brand-500); font-size: 22px;">Ödeme sonrası iptal?</h3><p>Mutfak hazırlığa başlamadan önce 2 dakikalık iptal penceresi (ayar). Sonrasında iade restoran panelinden tek tıkla.</p></div>
+    <div class="card"><h3 style="color: var(--brand-500); font-size: 22px;">Personel öğrenebilir mi?</h3><p>Restoran paneli iki düğmeli: "Hazır" ve "Teslim edildi". 30 dakikada öğrenilir. Mutfaktaki fiş zaten her zamanki gibi.</p></div>
+  </div>
+  <div class="footer"><span>SSS</span><span class="page-num">11 / 14</span></div>
+</section>
+
+<!-- 12, Competition -->
+<section data-screen-label="12 Rekabet">
+  <div class="eyebrow">Rakiplerle karşılaştırma</div>
+  <h2 class="title">Bu üçünü birden sağlayan<br/>doğrudan bir rakip yok.</h2>
+  <table class="compare" style="margin-top: 40px; font-size: 20px;">
+    <thead><tr><th>Özellik</th><th>SambaPOS</th><th>Adisyo</th><th>MenuQR</th><th class="brand">HashTap</th></tr></thead>
+    <tbody>
+      <tr><td>QR menü + ödeme</td><td style="color:var(--danger);">✗</td><td style="color:var(--success);">✓</td><td style="color:var(--success);">✓</td><td class="brand">✓</td></tr>
+      <tr><td>Tam ERP (stok, rapor, muhasebe)</td><td style="color:var(--success);">✓</td><td style="color:var(--warning);">Sınırlı</td><td style="color:var(--danger);">✗</td><td class="brand">✓</td></tr>
+      <tr><td>Modern mobil UX</td><td style="color:var(--danger);">✗</td><td style="color:var(--warning);">Orta</td><td style="color:var(--success);">✓</td><td class="brand">✓</td></tr>
+      <tr><td>Türkiye e-Arşiv + iyzico</td><td style="color:var(--success);">✓</td><td style="color:var(--success);">✓</td><td style="color:var(--warning);">Kısmi</td><td class="brand">✓</td></tr>
+      <tr><td>Para doğrudan restorana</td><td>,</td><td style="color:var(--warning);">Kısmi</td><td style="color:var(--danger);">Aracı</td><td class="brand">✓</td></tr>
+      <tr><td>On-premise + veri egemenliği</td><td style="color:var(--success);">✓</td><td style="color:var(--danger);">Cloud</td><td style="color:var(--danger);">Cloud</td><td class="brand">✓</td></tr>
+      <tr><td>Aylık abonelik baskısı</td><td>,</td><td style="color:var(--danger);">Var</td><td style="color:var(--danger);">Var</td><td class="brand">Yok</td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span>Pozisyon</span><span class="page-num">12 / 14</span></div>
+</section>
+
+<!-- 13, Pilot -->
+<section data-screen-label="13 Pilot">
+  <div class="eyebrow">Pilot teklifimiz</div>
+  <h2 class="title">Kâğıt üzerinde değil,<br/>gerçek bir akşam servisinde.</h2>
+  <div class="flow" style="margin-top: 40px;">
+    <div class="flow-step"><div class="card-num" style="color:var(--brand-500);">Adım 01</div><div class="ttl" style="margin-top:12px;">Ücretsiz ön inceleme</div><div class="sub">Restoranınızı bir akşam ziyaret ediyoruz</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="card-num" style="color:var(--brand-500);">Adım 02</div><div class="ttl" style="margin-top:12px;">Pilot kurulum</div><div class="sub">1 hafta içinde canlıya alıyoruz</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="card-num" style="color:var(--brand-500);">Adım 03</div><div class="ttl" style="margin-top:12px;">30 gün değerlendirme</div><div class="sub">Sayılarla konuşuyoruz</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="card-num" style="color:var(--brand-500);">Adım 04</div><div class="ttl" style="margin-top:12px;">Memnuniyet veya ayrılık</div><div class="sub">Hiçbir bağlayıcılık yok</div></div>
+  </div>
+  <p style="margin-top: 50px; font-size: 22px; color: var(--text-secondary); max-width:1400px; line-height: 1.5;">
+    Pilot restorana özel kurulum fiyatı. Memnun kalmazsanız kurulum bedelinin bir kısmı iade edilir, sözleşmede netleştirilir.
+  </p>
+  <div class="footer"><span>Pilot</span><span class="page-num">13 / 14</span></div>
+</section>
+
+<!-- 14, CTA -->
+<section class="hero" data-screen-label="14 İletişim">
+  <div class="bg-mark2"></div>
+  <div class="eyebrow">Bir sonraki adım</div>
+  <h1 class="title" style="font-size: 140px;">Gelin,<br/>birlikte <span style="color:var(--brand-500);">deneyelim.</span></h1>
+  <div style="display: flex; gap: 48px; margin-top: 48px; align-items: center;">
+    <div>
+      <div style="font-size: 14px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em;">Demo talebi ve pilot başvurusu</div>
+      <div style="font-size: 32px; font-weight: 700; margin-top: 12px; font-family: var(--font-mono);">info@hashtagworldcompany.com</div>
+      <div style="font-size: 22px; color: var(--text-secondary); margin-top: 10px;">Mert Özbaş · Kurucu</div>
+    </div>
+  </div>
+  <div class="footer"><span>HashTap · 2026</span><span class="page-num">14 / 14</span></div>
+</section>
+
+</deck-stage>
+
+<script>
+function InstallStep(){}
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="deck-stage.js"></script>
+<script type="text/babel">
+// Replace InstallStep placeholders via post-process
+document.querySelectorAll('[data-install]').forEach(el => {});
+</script>
+<script>
+// Render install steps as inline cards (simple DOM rewriter)
+(function() {
+  const slides = document.querySelectorAll('section');
+  // replace custom <InstallStep /> component references, we used plain grid divs above, nothing to do
+})();
+</script>
+</body>
+</html>
