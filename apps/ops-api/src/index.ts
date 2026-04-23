@@ -1,0 +1,27 @@
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import { env } from './config/env.js';
+import { loggerConfig } from './config/logger.js';
+import { registerRoutes } from './routes/index.js';
+
+async function main() {
+  const app = Fastify({ logger: loggerConfig });
+
+  await app.register(helmet);
+  await app.register(cors, { origin: true, credentials: true });
+
+  await registerRoutes(app);
+
+  app.get('/health', async () => ({ status: 'ok', ts: new Date().toISOString() }));
+
+  try {
+    await app.listen({ port: env.OPS_PORT, host: '0.0.0.0' });
+    app.log.info({ port: env.OPS_PORT }, 'HashTap ops-api ready');
+  } catch (err) {
+    app.log.error(err, 'failed to start');
+    process.exit(1);
+  }
+}
+
+main();

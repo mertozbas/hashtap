@@ -1,0 +1,5 @@
+# HashTap backup schedule — Europe/Istanbul
+# 03:00 pg_dump + restic backup
+# 03:30 prune (retention)
+0  3 * * *  /usr/local/bin/hashtap-backup >> /var/log/hashtap-backup.log 2>&1
+30 3 * * *  /usr/local/bin/hashtap-prune  >> /var/log/hashtap-backup.log 2>&1

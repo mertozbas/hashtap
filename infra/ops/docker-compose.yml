@@ -1,0 +1,57 @@
+# HashTap merkezi ops stack'i — production'da Hetzner / managed VPS üstünde çalışır.
+# Yerel dev için bu dosya kendi başına ayaklanabilir.
+#
+# Bileşenler:
+#   - ops-db: ops-api'nin Postgres'i (heartbeats, installations)
+#   - ops-api: Fastify heartbeat + monitoring endpoint
+#   - uptime-kuma (opsiyonel): dashboard
+
+services:
+  ops-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hashtap
+      POSTGRES_PASSWORD: hashtap
+      POSTGRES_DB: hashtap_ops
+    ports:
+      - "5532:5432"
+    volumes:
+      - ops_pg:/var/lib/postgresql/data
+      - ../../apps/ops-api/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hashtap -d hashtap_ops"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ops-api:
+    build:
+      context: ../..
+      dockerfile: apps/ops-api/Dockerfile
+    image: hashtap/ops-api:dev
+    restart: unless-stopped
+    depends_on:
+      ops-db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      OPS_PORT: 4100
+      OPS_DATABASE_URL: postgres://hashtap:hashtap@ops-db:5432/hashtap_ops
+      OPS_HEARTBEAT_INTERVAL_SECONDS: 60
+      OPS_INSTALLATION_TOKENS: ${OPS_INSTALLATION_TOKENS:-dev-install:dev-token-abc}
+    ports:
+      - "4100:4100"
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    profiles: ["dashboard"]
+    ports:
+      - "3001:3001"
+    volumes:
+      - ops_kuma:/app/data
+
+volumes:
+  ops_pg:
+  ops_kuma:

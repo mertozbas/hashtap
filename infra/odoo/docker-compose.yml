@@ -43,6 +43,8 @@ services:
     ports:
       - "8069:8069"
       - "8072:8072"  # longpolling
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
 
   redis:
     image: redis:7-alpine
@@ -57,7 +59,75 @@ services:
       - "8025:8025"  # web UI
       - "1025:1025"  # SMTP
 
+  # --- Faz 11 ops servisleri — profile-gated, default'ta start etmezler ---
+  # Restoran canary kurulumunda bu profile'ları aktif eder:
+  # docker compose --profile ops up -d
+
+  heartbeat:
+    build:
+      context: ../..
+      dockerfile: apps/heartbeat/Dockerfile
+    image: hashtap/heartbeat:dev
+    restart: unless-stopped
+    profiles: ["ops"]
+    environment:
+      HASHTAP_INSTALLATION_ID: ${HASHTAP_INSTALLATION_ID:-dev-install}
+      HASHTAP_SLUG: ${HASHTAP_SLUG:-dev-restoran}
+      HASHTAP_VERSION: ${HASHTAP_VERSION:-0.1.0}
+      HASHTAP_OPS_URL: ${HASHTAP_OPS_URL:-http://host.docker.internal:4100}
+      HASHTAP_INSTALLATION_TOKEN: ${HASHTAP_INSTALLATION_TOKEN:-dev-token-abc}
+      HEARTBEAT_INTERVAL_SECONDS: ${HEARTBEAT_INTERVAL_SECONDS:-60}
+      HEARTBEAT_SERVICES: >-
+        odoo=http://odoo:8069/web/health,mailpit=http://mailhog:8025
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  backup:
+    build:
+      context: ../../infra/backup
+    image: hashtap/backup:dev
+    restart: unless-stopped
+    profiles: ["ops"]
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    environment:
+      HASHTAP_INSTALLATION_ID: ${HASHTAP_INSTALLATION_ID:-dev-install}
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-/restic-repo}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-dev-only-password}
+      PGHOST: odoo-db
+      PGPORT: "5432"
+      PGUSER: odoo
+      PGPASSWORD: odoo
+      PGDATABASE: postgres
+      FILESTORE_PATH: /backup/filestore
+      CONFIG_PATH: /backup/config
+    volumes:
+      - odoo_data:/backup/filestore:ro
+      - restic_repo:/restic-repo
+      - backup_tmp:/backup/pg
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+    profiles: ["updates"]
+    environment:
+      TZ: Europe/Istanbul
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: "86400"       # günde bir
+      WATCHTOWER_SCHEDULE: "0 0 4 * * *"      # 04:00
+      WATCHTOWER_LABEL_ENABLE: "true"         # sadece etiketli containerlar
+      WATCHTOWER_ROLLING_RESTART: "true"
+      WATCHTOWER_NOTIFICATION_REPORT: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --label-enable
+      - --schedule=0 0 4 * * *
+
 volumes:
   odoo_pg:
   odoo_data:
   odoo_redis:
+  restic_repo:
+  backup_tmp:
