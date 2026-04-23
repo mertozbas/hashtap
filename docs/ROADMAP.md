@@ -14,7 +14,9 @@ Her faz için üç bölüm: **hedef, çıktı kriterleri, riskler**. Bir fazın 
 > provisioning → mimari sadeleştirme + installer CLI). **Faz 11-15**
 > yeni eklendi: remote support altyapısı, design system, KDS refresh,
 > cashier uygulaması, waiter uygulaması. Faz 0-7.5 çıktıları aynen
-> korunuyor.
+> korunuyor. **B2B partner kanalı** ayrı ticari iş kolu olarak
+> `~/hashtap-b2b/` klasöründe yürütülür; ürün yol haritasının parçası
+> değildir.
 
 ## Faz 0 — İskele (W0, bitti)
 
@@ -449,57 +451,7 @@ mutfakla iletişim kuran PWA. Detay: `apps/WAITER.md`.
 ### Çıktı kriterleri
 Detay: `apps/WAITER.md` §9.
 
-## Faz 16 — Partner Programı launch (W36–W52, Faz 10 sonrası)
-
-> **Pivot sonrası eklendi (2026-04-23).** B2B reseller kanalı —
-> Türkiye geneline yaygınlaşmanın ana mekanizması. Detay:
-> `PARTNER_PROGRAM.md`, `adr/0012-partner-channel.md`.
-
-**Hedef:** 12 ay içinde 8-12 aktif sertifikalı partner, 10-15M TL
-lisans cirosu. Doğrudan satış pilotu (Faz 10) referansıyla başlar.
-
-### Ön koşullar (Faz 16 başlamadan önce tamamlanmalı)
-
-- [x] Faz 10 (pilot restoran 4 hafta canlı, başarılı)
-- [ ] Faz 12 (Design system) — partner portal için gerekli
-- [ ] Yasal hukuki review (reseller agreement template)
-- [ ] Pazarlama kit (broşür, deck, demo script)
-
-### İş paketleri
-
-| Hafta | İş |
-|---|---|
-| W36-W37 | Partner sözleşmesi + hukuki dokümantasyon (reseller agreement, DPA, NDA template) |
-| W38-W39 | Pazarlama kit (broşür, pitch deck, demo script, fiyatlandırma kalkülatörü, case study pilot restoran) |
-| W40-W43 | Eğitim materyalleri (4 modül sunumları, sınav hazırlığı, video dersleri, knowledge base seed) |
-| W44-W47 | Partner Portal MVP (dashboard + lisans + kurulum + ticket + fatura + pazarlama kit) |
-| W48-W49 | İlk 2-3 aday partnerle görüşme, anlaşma, sözleşme |
-| W50-W51 | İlk kohort eğitim (3-5 gün) + sertifika sınavları |
-| W52+ | Pilot partner faz — her biri 3 kurulum HashTap mentörlüğünde |
-
-### Çıktı kriterleri (12. ay)
-
-- [ ] 3+ aktif sertifikalı partner
-- [ ] Partner Portal canlı, lisans aktivasyon akışı çalışıyor
-- [ ] Reseller Agreement template imzalanmış ve aktif kullanımda
-- [ ] En az 10 partner kaynaklı kurulum tamamlanmış
-- [ ] Partner NPS > 40
-- [ ] L2 eskalasyon oranı < %30
-- [ ] Sertifika sınavı geçme oranı > %80
-
-### Riskler
-
-- Hukuki süreç uzar (template revize) → önceden paralel hazırlık
-- İlk partner bulmak zor (pilot referansı olmadan) → Faz 10 pilotunu
-  detaylı case study yap
-- Partner Portal geliştirme Faz 12 (design system) bekler; yedek
-  plan: basit Odoo-tabanlı portal
-- Eğitim yükü (3-5 gün in-person) HashTap ekibini çok meşgul eder →
-  e-learning portalı hızla kurulmalı
-
-Detay: `PARTNER_PROGRAM.md` §17 + §15 (risk tablosu).
-
-## Faz 17+ (hedefler, zamanlama yok)
+## Faz 16+ (hedefler, zamanlama yok)
 
 - Çoklu konsept / zincir desteği.
 - Yemeksepeti / Getir entegrasyonu.
@@ -508,8 +460,12 @@ Detay: `PARTNER_PROGRAM.md` §17 + §15 (risk tablosu).
 - AI menü önerisi.
 - **HashTap markalı donanım bundle'ı** — iş modeli faz 2 hedefi
   (`BUSINESS_MODEL.md` §6).
-- **White-label partner tier'ı** — Gold partner'lar kendi markası
-  altında satabilir (`PARTNER_PROGRAM.md` §10.3).
+
+> **B2B Partner Programı not:** B2B reseller kanalı ayrı bir ticari
+> iş kolu olarak `~/hashtap-b2b/` klasöründe yürütülür. Teknik yol
+> haritasının parçası değil (ayrı tempoyla, ayrı takımla,
+> sözleşme-odaklı). Ürün tarafındaki gelişme (Faz 10 pilot) bittiğinde
+> paralel kanal olarak aktive edilebilir.
 
 ## Özet çizelgesi
 
@@ -534,12 +490,9 @@ Detay: `PARTNER_PROGRAM.md` §17 + §15 (risk tablosu).
 | 15 | W28–W35 (paralel) | **Waiter uygulaması** | ⏳ |
 | 9 | W34–W35 | Pilot hazırlık | ⏳ |
 | 10 | W36–W39 | Pilot (4 hafta canlı) | ⏳ |
-| **16** | **W36–W52** | **Partner Programı launch** | ⏳ |
 
 Pivot sonrası toplam tahmini yol: **~40 hafta** (Faz 14-15 paralel
 çalışırsa ~35 hafta). Bu 1-2 geliştirici varsayımı; cashier + waiter
 için frontend uzmanının (veya ek mühendisin) paralel çalışması kritik.
-Faz 16 partner programı Faz 10 sonrası paralel başlar ve W52'ye
-(12 aya) kadar 3-5 aktif partner hedefler.
 
 Anlık yapılmış / sıradaki ince liste: `docs/STATUS.md`.

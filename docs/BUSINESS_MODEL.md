@@ -10,26 +10,19 @@ Son güncelleme: 2026-04-23.
 
 İlgili dokümanlar:
 - `adr/0011-on-premise-deployment.md` — kararın ADR kaydı
-- `adr/0012-partner-channel.md` — B2B partner kanalı kararı
-- `PARTNER_PROGRAM.md` — reseller partner programı detayı
 - `ARCHITECTURE.md` — pivot sonrası mimari
 - `INSTALLATION_PLAYBOOK.md` — IT ekibinin kurulum rehberi
 - `OPERATIONS.md` — kurulum sonrası destek, güncelleme, yedekleme
 - `PRODUCT.md` — ürün tanımı (pivot sonrası güncellenmiş bölümleri)
 
+**Not:** B2B partner (reseller) programı bu dokümanın kapsamı dışındadır.
+Ayrı bir iş kolu olarak `~/hashtap-b2b/` klasöründe işlenir (ticari
+gizlilik + ayrı hedef kitle).
+
 ## 1. Yönetici özeti
 
 HashTap, Türkiye restoran pazarına **"gel, kur, teslim et, destekle"**
 modeliyle satılır. Bulut abonelik (SaaS) modeli reddedilmiştir.
-
-**İki paralel satış kanalı** yürütülür:
-
-1. **Doğrudan satış (bu doküman)** — 1-2 pilot şehirde HashTap'in kendi
-   satış + IT ekibi restoranlara götürür. Öğrenme + referans + marka
-   bilinirliği.
-2. **B2B partner kanalı (`PARTNER_PROGRAM.md`)** — yerel yazılım
-   şirketleri lisans alıp kendi bölgelerinde restoranlara satar + kurar
-   + L1 destek verir. Paralel ölçek.
 
 **Satış → Kurulum → Teslim → Destek → (ileride) Donanım bundle'ı** zinciri
 dört aşamalıdır:
@@ -131,54 +124,53 @@ Bu yüklerin her birinin net çözümü `OPERATIONS.md` ve
 5. **Kurulum randevusu** — IT ekibiyle tarih belirlenir, restoran kapalı
    saatlerde gerçekleştirilir (genellikle öğleden önce veya gece).
 
-### 3.3 Fiyatlama taslağı
+### 3.3 Fiyatlandırma (son kullanıcı — restoran)
 
-Not: Bu rakamlar pilot öncesi çalışma tahmini; pilot sonrası pazar testiyle
-doğrulanacak.
+Dört paket, restoranın mevcut donanım durumuna ve kurulum kapsamına
+göre seçilir:
 
-| Paket | İçerik | Kurulum tutarı | Yıllık bakım |
+| Paket | İçerik | Kurulum (tek seferlik) | Aylık bakım (opsiyonel) |
 |---|---|---|---|
-| **A — Yazılım** | HashTap yazılımı, mevcut donanıma kurulum, eğitim | 25.000–35.000 TL | 4.000–6.000 TL |
-| **B — Yazılım + Eksik Donanım** | A + yazıcı + tablet + ağ | 45.000–65.000 TL | 6.000–8.000 TL |
-| **C — Tam Bundle (faz 2)** | A + HashTap markalı kasa PC + yazıcı + tablet + router | 80.000–120.000 TL | 8.000–12.000 TL |
+| **A — QR Menü + Ödeme** | HashTap yazılımı, menü aktarımı, QR baskı, eğitim. Mevcut sistem korunur. | 80.000 TL | 1.500 TL/ay |
+| **B — QR Menü + Donanım** | A + QR menü donanımı, ağ altyapısı, baskı, saha kurulumu | 120.000 TL | 1.500 TL/ay |
+| **C — Yazılım + Eksik Donanım** (popüler) | B + termal yazıcı, garson tableti, KDS ekranı, print-bridge | 200.000 TL | 1.500 TL/ay |
+| **D — Full Kurulum** | Tam HashTap bundle + HashTap markalı kasa PC (15.6") + mutfak ekranı (21.5") + tüm donanımlar sıfırdan, öncelikli destek | 350.000 TL | 1.500 TL/ay |
+
+Fiyatlar pilot öncesi çalışma tahmini — restoranın büyüklüğüne,
+masa sayısına, konsept sayısına göre netleşir.
+
+**Aylık bakım opsiyoneldir:** yenilenmezse sistem çalışmaya devam eder;
+sadece uzaktan destek + güncelleme + yedekleme izleme kesilir. Veri ve
+yazılım kullanım hakkı restoranda kalır.
 
 **Gelir akışları:**
-1. **Kurulum ücreti (doğrudan satış)** — birincil gelir, tek seferlik.
-2. **Yıllık bakım** — ikincil, yinelenen. Güncelleme, uzaktan destek,
-   telefon desteği, saha ziyareti (yılda 1-2 gerektiğinde).
-3. **Partner lisans satışı** (`PARTNER_PROGRAM.md`) — tier bazlı
-   (Tekil/Bronze/Silver/Gold), 100K-2.5M TL peşin. **Ölçeklenebilir
-   ikinci gelir akışı.**
-4. **Lisans yenileme** — partner kanalından, yıllık %20 bedel.
-5. **İşlem komisyonu** (facilitator fee) — iyzico üzerinden geçen
+1. **Kurulum ücreti** — birincil gelir, tek seferlik satış.
+2. **Aylık bakım** — ikincil, yinelenen. Güncelleme, uzaktan destek,
+   yedekleme izleme, telefon desteği.
+3. **İşlem komisyonu** (facilitator fee) — iyzico üzerinden geçen
    ödemelerde küçük bir HashTap payı. Marjinal, ana akım değil.
-6. **Donanım marjı** (faz 2) — bundle içindeki donanımda üretici → HashTap
-   → restoran zincirindeki fark.
-7. **Ek modül / özellik satışı** (faz 3) — sadakat programı, delivery
+4. **Donanım marjı** — bundle paketlerinde (B/C/D) donanımda
+   üretici → HashTap → restoran zincirindeki fark.
+5. **Ek modül / özellik satışı** (faz 2+) — sadakat programı, delivery
    entegrasyonu, AI menü önerisi gibi şeyler modüler eklenti olarak.
-8. **Eğitim hizmetleri** — partner ekibinin yenileme eğitimleri, yeni
-   personel eklendiğinde kişi başı ücret.
+6. **B2B partner kanalı** (ayrı iş kolu) — bkz `~/hashtap-b2b/`.
 
 ### 3.4 Hedef satış rakamları (ilk 12 ay, pilot sonrası)
 
 **Doğrudan satış (İstanbul + 1 şehir):**
 
-| Çeyrek | Kurulum adedi | Ortalama tutar | Ciro tahmini |
+| Çeyrek | Kurulum adedi | Ortalama paket | Ciro tahmini |
 |---|---|---|---|
-| Q1 (pilot) | 1-3 | 30.000 TL | 30-90.000 TL |
-| Q2 | 5-10 | 35.000 TL | 175-350.000 TL |
-| Q3 | 15-25 | 40.000 TL | 600-1.000.000 TL |
-| Q4 | 30-50 | 45.000 TL | 1.350-2.250.000 TL |
+| Q1 (pilot) | 1-3 | 120.000 TL | 120-360.000 TL |
+| Q2 | 5-10 | 140.000 TL | 700K-1.4M TL |
+| Q3 | 15-25 | 160.000 TL | 2.4-4M TL |
+| Q4 | 30-50 | 180.000 TL | 5.4-9M TL |
 
-**Partner kanalı (Q3 itibarıyla başlar, `PARTNER_PROGRAM.md` §16):**
+Bu muhafazakar tahminler; satış ekibi tam oturursa yukarı kıvrılabilir.
+Toplam 12 aylık hedef: **~8-15M TL doğrudan satış**.
 
-| Çeyrek | Aktif partner | Lisans satışı (cirosal) |
-|---|---|---|
-| Q3 | 2-3 pilot | 2-4M TL (sözleşme ödemeleri) |
-| Q4 | 5-8 | 5-10M TL (birikimli) |
-
-Bu muhafazakar tahminler; bayi ağı hızlı kurulursa yukarı kıvrılabilir.
-Toplam 12 aylık hedef: **~15-20M TL** (doğrudan + partner lisans).
+B2B partner kanalından gelecek ek ciro ayrı iş kolunun projeksiyonudur
+(`~/hashtap-b2b/`).
 
 ## 4. Kurulum süreci (IT ekibi)
 

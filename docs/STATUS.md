@@ -64,7 +64,8 @@ backend, payment, e-Arşiv, KDS, white-label).
 | **13** | **KDS dokunmatik iyileştirmeleri** | ⏳ | Yeni design system'e göre refresh, bump-bar desteği. |
 | **14** | **Cashier uygulaması** | ⏳ | `apps/cashier/` — kasa için React PWA (detay: `apps/CASHIER.md`). |
 | **15** | **Waiter uygulaması** | ⏳ | `apps/waiter/` — garson için mobile-first React PWA (detay: `apps/WAITER.md`). |
-| **16** | **Partner programı launch** | ⏳ | Sözleşme + eğitim + Partner Portal + ilk kohort (detay: `PARTNER_PROGRAM.md` §17). Faz 10 pilot referansı sonrası başlar. |
+
+> **Not:** B2B partner programı ayrı bir iş kolu olarak `~/hashtap-b2b/` klasöründe yürütülür. Ana teknik yol haritasının parçası değildir.
 
 Notlar:
 
@@ -148,7 +149,7 @@ Faz 0 iskelet hali. Odoo controllerları doğrudan PWA ile konuşabiliyor
 
 | Tarih | Değişiklik | PR/commit notu |
 |---|---|---|
-| 2026-04-23 | **B2B Partner programı:** Yerel yazılım şirketleri için reseller kanalı dokümantasyonu yazıldı (`PARTNER_PROGRAM.md`, ADR-0012). Lisans modeli: Tekil (100K) / Bronze 10'lu (80K/birim) / Silver 30'lu (65K/birim) / Gold 50+ peşin (50K/birim). İl-exclusive + sertifikalı partner zinciri + L1/L2 destek. `BUSINESS_MODEL.md` iki kanal modelini yansıtacak şekilde güncellendi. | doc only |
+| 2026-04-23 | **B2B iş kolu ayrıldı:** Partner (reseller) programı ana repo'dan çıkarıldı ve `~/hashtap-b2b/` klasörüne taşındı. Fiyatlandırma revize edilecek (son kullanıcı fiyatlarıyla uyumlu partner margin'i sağlayan tier tablosu). `BUSINESS_MODEL.md` demo ile hizalandı (A:80K / B:120K / C:200K / D:350K + 1.500 TL/ay bakım). | doc only |
 | 2026-04-23 | **Doküman temizliği:** Eski SaaS/multi-tenant dokümanları silindi (`MULTI_TENANCY.md`, `DEPLOYMENT.md`, eski `ARCHITECTURE.md`). `ON_PREMISE_ARCHITECTURE.md` → canonical `ARCHITECTURE.md` rename. `DEV_SETUP.md` ve `SECURITY.md` on-premise'a göre yeniden yazıldı. `PRODUCT.md` + `hashtap-sunum.md` fiyatlandırma güncellendi. | doc only |
 | 2026-04-23 | **Stratejik pivot:** SaaS → on-premise tek-kiracı. Dokümantasyon seti yazıldı (`BUSINESS_MODEL.md`, ADR-0011, `ARCHITECTURE.md`, `INSTALLATION_PLAYBOOK.md`, `OPERATIONS.md`, `DESIGN_SYSTEM.md`, `apps/CASHIER.md`, `apps/WAITER.md`). | doc only, kod değişmedi |
 | 2026-04-21 | KDS bug fix: `modifier.mapped("name")` → `name_tr` | `hashtap_pos/controllers/kds.py:40` |
