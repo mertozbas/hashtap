@@ -128,10 +128,10 @@ göre seçilir:
 
 | Paket | İçerik | Kurulum (tek seferlik) | Aylık bakım (opsiyonel) |
 |---|---|---|---|
-| **A — QR Menü + Ödeme** | HashTap yazılımı, menü aktarımı, QR baskı, eğitim. Mevcut sistem korunur. | 80.000 TL | 1.500 TL/ay |
-| **B — QR Menü + Donanım** | A + QR menü donanımı, ağ altyapısı, baskı, saha kurulumu | 120.000 TL | 1.500 TL/ay |
-| **C — Yazılım + Eksik Donanım** (popüler) | B + termal yazıcı, garson tableti, KDS ekranı, print-bridge | 200.000 TL | 1.500 TL/ay |
-| **D — Full Kurulum** | Tam HashTap bundle + HashTap markalı kasa PC (15.6") + mutfak ekranı (21.5") + tüm donanımlar sıfırdan, öncelikli destek | 350.000 TL | 1.500 TL/ay |
+| **HashTap Menü** (A) — QR menü + ödeme | Menü aktarımı, QR baskı, eğitim. Mevcut POS/ERP sistemi korunur — HashTap yalnızca menü ve ödeme katmanı. | 80.000 TL | 1.500 TL/ay |
+| **HashTap Mobile** (B) — QR menü + donanım | HashTap Menü'nün tümü + QR stand baskısı, ağ altyapısı, saha kurulumu | 120.000 TL | 1.500 TL/ay |
+| **HashTap Pro** (C, popüler) — full HashTap ERP | Full HashTap ERP (kasa, garson, KDS, stok, raporlama, müşteri PWA) + termal yazıcı, garson tableti, KDS ekranı, print-bridge | 200.000 TL | 1.500 TL/ay |
+| **HashTap Max** (D) — full kurulum | HashTap Pro'nun tümü + HashTap markalı kasa PC (15.6") + mutfak ekranı (21.5") + tüm donanımlar sıfırdan + öncelikli destek | 350.000 TL | 1.500 TL/ay |
 
 Fiyatlar pilot öncesi çalışma tahmini — restoranın büyüklüğüne,
 masa sayısına, konsept sayısına göre netleşir.

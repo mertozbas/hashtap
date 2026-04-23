@@ -67,17 +67,27 @@ Bu doküman ne inşa ettiğimizi, kim için inşa ettiğimizi ve hangi sınırla
 
 ## 5. Ticari model
 
-> **Pivot sonrası güncellendi (2026-04-23).** Detay: `BUSINESS_MODEL.md`.
+> **Pivot sonrası güncellendi (2026-04-23).** Detay: `BUSINESS_MODEL.md` §3.3.
 
-- **Tek seferlik kurulum ücreti** (~25.000-80.000 TL, pakete göre) —
-  birincil gelir akışı. Yazılım lisansı + saha kurulumu + eğitim +
-  ilk yıl bakım dahil.
-- **Yıllık bakım abonelik** (~4.000-12.000 TL) — güncelleme, uzaktan
-  destek, telefon desteği, saha müdahale.
+### 5.1 Dört paket — son müşteri (restoran) fiyatları
+
+| Paket | MSRP | Aylık bakım |
+|---|---|---|
+| **HashTap Menü** (A) — QR menü + ödeme, mevcut sistem korunur | 80.000 TL | 1.500 TL/ay |
+| **HashTap Mobile** (B) — A + QR donanımı + ağ altyapısı | 120.000 TL | 1.500 TL/ay |
+| **HashTap Pro** (C, popüler) — full HashTap ERP + yazıcı + tablet + KDS | 200.000 TL | 1.500 TL/ay |
+| **HashTap Max** (D) — full ERP + HashTap markalı kasa PC + mutfak ekranı + öncelikli destek | 350.000 TL | 1.500 TL/ay |
+
+### 5.2 Gelir akışları
+
+- **Tek seferlik kurulum ücreti** — birincil gelir (80K-350K pakete göre)
+- **Aylık bakım (opsiyonel)** — 1.500 TL/ay, tüm paketlerde aynı.
+  Yenilenmezse yazılım çalışmaya devam eder; sadece güncelleme +
+  uzaktan destek + yedekleme izleme kesilir
 - **Kart komisyonu (facilitator fee)** — iyzico'nun oranı + küçük bir
-  HashTap payı. Marjinal, ana akım değil.
-- **Donanım bundle marjı** (faz 2 hedefi) — HashTap markalı POS PC +
-  yazıcı + tablet paketi olarak satış.
+  HashTap payı. Marjinal, ana akım değil
+- **Donanım bundle marjı** — B/C/D paketlerinde (HashTap Max tam
+  markalı donanım bundle)
 
 Eski model ("aylık SaaS abonelik") **reddedildi:** sunucu maliyeti
 HashTap'te, Türkiye restoran pazarının abonelik kültürüne uzaklığı,
