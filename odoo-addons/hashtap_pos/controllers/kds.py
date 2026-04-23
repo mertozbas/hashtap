@@ -30,6 +30,24 @@ _KDS_COLUMN = {
 # (Servis edildi butonuna basılana kadar ekranda kalır.)
 
 
+def _order_has_station(order, station):
+    """Sipariş verilen istasyonla ilgili mi?
+
+    item.kitchen_station alanı opsiyoneldir. Yoksa kategori bazlı
+    türetiriz (en pragmatik: "bar" kategori adı → bar istasyonu).
+    Hiçbir eşleşme yoksa siparişi varsayılan "main" istasyonuna kabul
+    ederiz.
+    """
+    target = (station or "").strip().lower()
+    if not target:
+        return True
+    for line in order.line_ids:
+        item_station = getattr(line, "kitchen_station", None) or "main"
+        if str(item_station).lower() == target:
+            return True
+    return target == "main" and not order.line_ids
+
+
 def _serialize_kds_order(order):
     lines = []
     for line in order.line_ids:
@@ -75,12 +93,21 @@ class HashTapKDS(http.Controller):
         "/hashtap/kds/orders.json",
         type="json", auth="user", methods=["POST"], csrf=False,
     )
-    def kds_orders(self, **kw):
+    def kds_orders(self, station=None, **kw):
+        """Aktif siparişleri döner.
+
+        station: Opsiyonel istasyon filtresi (ör. "hot", "cold", "bar").
+            MVP'de item_category.station alanı üzerinden filtre yapılır —
+            her sipariş en az bir istasyonun ilgilendiği satır içeriyorsa
+            sonuçta görünür. Kategorinin station'ı yoksa varsayılan "main".
+        """
         Order = request.env["hashtap.order"].sudo()
         orders = Order.search(
             [("state", "in", ["kitchen_sent", "preparing", "ready"])],
             order="kitchen_fired_at asc, id asc",
         )
+        if station:
+            orders = orders.filtered(lambda o: _order_has_station(o, station))
         return {"orders": [_serialize_kds_order(o) for o in orders]}
 
     @http.route(

@@ -22,7 +22,11 @@
       "@hashtap/shared": ["packages/shared/src"],
       "@hashtap/shared/*": ["packages/shared/src/*"],
       "@hashtap/pos-adapters": ["packages/pos-adapters/src"],
-      "@hashtap/pos-adapters/*": ["packages/pos-adapters/src/*"]
+      "@hashtap/pos-adapters/*": ["packages/pos-adapters/src/*"],
+      "@hashtap/ui": ["packages/ui/src"],
+      "@hashtap/ui/*": ["packages/ui/src/*"],
+      "@hashtap/installer": ["packages/installer/src"],
+      "@hashtap/installer/*": ["packages/installer/src/*"]
     }
   }
 }

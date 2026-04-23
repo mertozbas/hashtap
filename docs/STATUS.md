@@ -5,7 +5,7 @@ açısından tek referans noktasıdır. Diğer dokümanlar (ROADMAP, DATA_MODEL,
 MODULE_DESIGN...) tasarım niyetini ve hedefini anlatır; **bu sayfa
 gerçeği anlatır**. Yeni iş biter bitmez bu sayfa güncellenir.
 
-Son güncelleme: 2026-04-23.
+Son güncelleme: 2026-04-24.
 
 ## 🚨 Stratejik pivot — 2026-04-23
 
@@ -53,17 +53,17 @@ backend, payment, e-Arşiv, KDS, white-label).
 | 4 | iyzico ödeme (sandbox) | ✅ | Payment adapter pattern, `mock` + `iyzico` adaptörleri, 3DS callback + idempotency. |
 | 5 | e-Arşiv (mock + Foriba iskeleti) | ✅ | earsiv adapter pattern, `mock` + `foriba` (iskelet), **fail-close** uygulandı. |
 | **6a** | **KDS (Kitchen Display)** | ✅ | `/hashtap/kds` tam ekran, 3 kolon, polling, beep. |
-| 6b | Print-bridge (Pi + ESC/POS) | ⏳ | Pilot restoran seçildiğinde başlar. |
+| **6b** | **Print-bridge (ESC/POS)** | ✅ iskelet | Kalıcı kuyruk (JSONL), retry backoff, WS reconnect, flush/test scripts. |
 | **7.5** | **hashtap_theme doldur (white-label pass)** | ✅ | Login CSS-branded, backend navbar + buton overrides, "Powered by Odoo" gizli. |
-| 7 | POS adapter (SambaPOS / Adisyo) | ⏳ | Segment B — partnership ve pilot müşteri gerekli. |
-| 8 | ~~Multi-tenant provisioning~~ **Mimari sadeleştirme + Installer CLI** | ⏳ | Pivot sonrası: multi-tenant kalıntı temizliği, `packages/installer/` ile tek komutla kurulum. |
-| 9 | Pilot hazırlık | ⏳ | Pilot restoran menü yüklemesi, eğitim, uptime monitoring, destek süreci. |
-| 10 | Pilot (4 hafta canlı) | ⏳ | Canary + gözlem. |
-| **11** | **Remote support + backup + monitoring altyapısı** | ⏳ | Tailscale, restic+B2, Uptime Kuma, heartbeat protokolü. |
-| **12** | **Design system (packages/ui)** | ⏳ | Modern UI tasarım dili, bileşen kütüphanesi, Storybook. |
-| **13** | **KDS dokunmatik iyileştirmeleri** | ⏳ | Yeni design system'e göre refresh, bump-bar desteği. |
-| **14** | **Cashier uygulaması** | ⏳ | `apps/cashier/` — kasa için React PWA (detay: `apps/CASHIER.md`). |
-| **15** | **Waiter uygulaması** | ⏳ | `apps/waiter/` — garson için mobile-first React PWA (detay: `apps/WAITER.md`). |
+| **7** | **POS adapter (SambaPOS + Adisyo)** | ✅ iskelet | GraphQL + REST client, mock mode, idempotent push, stableUuid mapping, 9 test geçiyor. |
+| **8** | **Installer CLI (`packages/installer`)** | ✅ iskelet | Zod config schema, `@inquirer/prompts` wizard, docker compose + Tailscale + Cloudflare step'leri, smoke test, `--dry-run`. |
+| **9** | **Pilot hazırlık** | ✅ plan | `docs/PILOT.md` — 2 haftalık hazırlık + pilot başlangıç kontrol listesi. |
+| 10 | Pilot (4 hafta canlı) | ⏳ | Pilot restoran seçildiğinde başlar — `docs/PILOT.md` §4. |
+| **11** | **Remote support + backup + monitoring** | ✅ | ops-api + heartbeat daemon + restic backup + 7 runbook + docker-compose profile'ları. |
+| **12** | **Design system (`packages/ui`)** | ✅ | Button/Card/Input/Modal/Toast/Badge/Skeleton/EmptyState/LiveIndicator + `useTheme`/`useHaptic`, Tailwind preset. |
+| **13** | **KDS dokunmatik + bump-bar** | ✅ | 72px touch, 1-9 kart seç, ok/Enter/Backspace, istasyon filtresi (`?station=hot`). |
+| **14** | **Cashier uygulaması** | ✅ iskelet | Vite + React + `@hashtap/ui`. Home/Orders/NewOrder/Tables/Settings ekranları; zustand store; demo menü + sepet. |
+| **15** | **Waiter uygulaması** | ✅ iskelet | PWA + offline queue (idb-keyval), haptic feedback, Tables/Detail/Menu/Notifications; bildirim store. |
 
 Notlar:
 
@@ -109,15 +109,69 @@ Notlar:
   (`assets_frontend`).
 - Detay: `docs/WHITE_LABEL.md` §4.
 
-### 2.3 `apps/customer-pwa/` + `apps/gateway/`
+### 2.3 `apps/customer-pwa/` + `apps/api/`
 
 Faz 0 iskelet hali. Odoo controllerları doğrudan PWA ile konuşabiliyor
 (gateway opsiyonel; şu anda bypass).
 
-### 2.4 `infra/odoo/`
+### 2.4 `apps/ops-api/` — merkezi heartbeat alıcısı (Faz 11)
 
-- `docker-compose.yml` (Odoo + Postgres + Redis + Adminer + Mailpit).
-- `Dockerfile`: `odoo:17` + `iyzipay` pip paketi.
+Fastify + Postgres. Tek endpoint: `POST /v1/ops/heartbeat`. Migration
+`apps/ops-api/migrations/001_heartbeats.sql` ile installations +
+heartbeats tablolarını kurar. Bearer token auth, dev için CSV env.
+
+### 2.5 `apps/heartbeat/` — restoran-tarafı daemon (Faz 11)
+
+60 sn aralıkla disk/memory/servis sağlığı toplar, ops-api'ya POST eder.
+`HEARTBEAT_SERVICES` env'i ile hangi servisin kontrol edileceği
+konfigüre edilir.
+
+### 2.6 `apps/print-bridge/` — ESC/POS köprüsü (Faz 6b)
+
+Kalıcı dosya-tabanlı kuyruk (`/var/spool/hashtap/pending/`,
+`done/`), max retry + exponential backoff, WS reconnect. Scripts:
+`flush-queue.js`, `test-print.js`.
+
+### 2.7 `apps/cashier/` + `apps/waiter/` (Faz 14 + 15)
+
+Vite + React + `@hashtap/ui`. İskelet ekranlar, zustand store,
+react-router, demo data. Waiter PWA + idb-keyval ile offline queue.
+
+### 2.8 `packages/ui/` — Tasarım sistemi (Faz 12)
+
+Dark-first glassmorphism bileşen kütüphanesi. Tailwind preset
+(`tailwind.preset.cjs`), token export (`tokens.ts`), CSS custom
+property globals (`src/styles/globals.css`). 9 bileşen + 2 hook.
+
+### 2.9 `packages/pos-adapters/` — Segment B (Faz 7)
+
+SambaPOS GraphQL + Adisyo REST client'ları. Live + mock mode. İki
+adapter 9 test geçiyor (`src/adapters/__tests__/`).
+
+### 2.10 `packages/installer/` — Kurulum CLI (Faz 8)
+
+Zod config schema + `@inquirer/prompts` wizard. Step'ler: .env yaz,
+docker compose, Tailscale enroll, Cloudflare Tunnel, smoke test.
+`--dry-run` modunda kuru koşu.
+
+### 2.11 `infra/`
+
+- `infra/odoo/docker-compose.yml` — Odoo + Postgres + Redis + Mailpit
+  + profile-gated: `heartbeat`, `backup`, `watchtower` (Faz 11).
+- `infra/ops/docker-compose.yml` — merkezi ops stack (ops-api + ops-db
+  + opsiyonel Uptime Kuma).
+- `infra/backup/` — Alpine + restic + pg_client + cron image, backup/
+  prune/restore script'leri.
+
+### 2.12 `docs/runbooks/` — Olay runbook'ları (Faz 11)
+
+7 runbook + postmortem şablonu: P0 (kasa PC, postgres), P1 (iyzico,
+print), P2 (KDS slow, backup fail), periyodik restore testi.
+
+### 2.13 `docs/PILOT.md` — Pilot rehberi (Faz 9)
+
+2 haftalık hazırlık + 4 haftalık canlı pilot adımları, pilot
+kontrol listesi, canary flag stratejisi, rollback planı.
 
 ## 3. Bilinen açıklar (tutulan borç)
 

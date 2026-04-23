@@ -472,19 +472,23 @@ Detay: `apps/WAITER.md` §9.
 | 6a | W12 | KDS (Kitchen Display) | ✅ |
 | 7.5 | W12 | `hashtap_theme` doldurma (pass 1) | ✅ |
 | — | W13 | **🚨 Stratejik pivot + dokümantasyon** | ✅ |
-| 6b | pilot tetikli | Print-bridge (ESC/POS) | ⏳ |
-| 7 | W14–W15 | POS adapter (Segment B) | ⏳ partnership bağımlı |
-| 8 | W15–W17 | ~~Multi-tenant provisioning~~ **Mimari sadeleştirme + Installer CLI** | ⏳ |
-| 11 | W18–W19 | **Remote support + backup + monitoring** | ⏳ |
-| 12 | W20–W21 | **Design system / packages/ui** | ⏳ |
-| 13 | W22 | **KDS dokunmatik iyileştirmeleri** | ⏳ |
-| 14 | W23–W30 | **Cashier uygulaması** | ⏳ |
-| 15 | W28–W35 (paralel) | **Waiter uygulaması** | ⏳ |
-| 9 | W34–W35 | Pilot hazırlık | ⏳ |
-| 10 | W36–W39 | Pilot (4 hafta canlı) | ⏳ |
+| 6b | pilot tetikli | Print-bridge (ESC/POS + queue + retry) | ✅ iskelet |
+| 7 | W14–W15 | POS adapter (SambaPOS + Adisyo stub/live) | ✅ iskelet |
+| 8 | W15–W17 | **Installer CLI (`packages/installer`)** | ✅ iskelet |
+| 11 | W18–W19 | **Remote support + backup + monitoring** | ✅ |
+| 12 | W20–W21 | **Design system / packages/ui** | ✅ |
+| 13 | W22 | **KDS dokunmatik iyileştirmeleri + bump-bar** | ✅ |
+| 14 | W23–W30 | **Cashier uygulaması** | ✅ iskelet |
+| 15 | W28–W35 (paralel) | **Waiter uygulaması** | ✅ iskelet |
+| 9 | W34–W35 | **Pilot hazırlık (docs/PILOT.md)** | ✅ plan |
+| 10 | W36–W39 | Pilot (4 hafta canlı) | ⏳ pilot restoran bekleniyor |
 
 Pivot sonrası toplam tahmini yol: **~40 hafta** (Faz 14-15 paralel
 çalışırsa ~35 hafta). Bu 1-2 geliştirici varsayımı; cashier + waiter
 için frontend uzmanının (veya ek mühendisin) paralel çalışması kritik.
+
+**Faz 6b/7/8/11/12/13/14/15/9 iskeleleri ve plan dokümanları hazır.**
+Kalan iş her iskeleyi pilot-ready seviyesine getirmek — Faz 10 (canlı
+pilot) pilot restoran seçildiğinde başlar.
 
 Anlık yapılmış / sıradaki ince liste: `docs/STATUS.md`.

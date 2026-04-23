@@ -116,14 +116,34 @@ html, body {
 .kds-card {
     background: var(--ht-panel-2);
     border: 2px solid var(--ht-border);
-    border-radius: 8px;
-    padding: 14px;
-    display: flex; flex-direction: column; gap: 10px;
-    transition: border-color 0.2s;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: border-color 0.2s, outline 0.12s, transform 0.08s;
+    position: relative;
 }
 
 .kds-card.is-warn   { border-color: var(--ht-warn); }
 .kds-card.is-danger { border-color: var(--ht-danger); animation: pulse 1.2s infinite; }
+.kds-card.is-selected {
+    outline: 3px solid var(--ht-accent);
+    outline-offset: 2px;
+    transform: translateY(-1px);
+}
+.kds-card-index {
+    position: absolute;
+    top: -10px; left: -10px;
+    background: var(--ht-accent);
+    color: #1a1208;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+    min-width: 26px; height: 26px;
+    padding: 0 8px;
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
 
 @keyframes pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(229,89,52,0.35); }
@@ -180,29 +200,38 @@ html, body {
 .kds-note:empty { display: none; }
 
 .kds-actions {
-    display: flex; gap: 8px; margin-top: auto;
+    display: flex; gap: 10px; margin-top: auto;
 }
 
 .kds-btn {
     flex: 1;
-    padding: 14px;
+    min-height: 72px;         /* birincil aksiyon için büyük dokunma hedefi */
+    padding: 16px 18px;
     border: none;
-    border-radius: 6px;
-    font-size: 16px; font-weight: 700;
+    border-radius: 10px;
+    font-size: 18px; font-weight: 700;
     cursor: pointer;
-    transition: transform 0.08s, filter 0.15s;
+    transition: transform 0.08s, filter 0.15s, box-shadow 0.15s;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
 }
 .kds-btn:active { transform: scale(0.97); }
 .kds-btn:hover  { filter: brightness(1.08); }
+.kds-btn:focus-visible {
+    outline: 3px solid var(--ht-accent);
+    outline-offset: 2px;
+}
 
 .kds-btn-primary {
     background: var(--ht-accent); color: #1a1208;
+    box-shadow: 0 4px 14px rgba(212,163,115,0.28);
 }
 .kds-btn-secondary {
     background: var(--ht-panel);
     color: var(--ht-muted);
     border: 1px solid var(--ht-border);
+    min-height: 60px;           /* ikincil aksiyon, biraz daha kompakt */
 }
 
 /* State-özel buton etiketleri CSS ile */
@@ -225,4 +254,42 @@ html, body {
 @media (max-width: 900px) {
     .kds-columns { grid-template-columns: 1fr; }
     .kds-col { max-height: 50vh; }
+}
+
+/* ---------------------------------------------------------- bump-bar -- */
+.kds-hint {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    padding: 8px 24px 14px;
+    font-size: 13px;
+    color: var(--ht-muted);
+    background: var(--ht-panel);
+    border-top: 1px solid var(--ht-border);
+}
+.kds-hint kbd {
+    display: inline-block;
+    padding: 2px 8px; margin: 0 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ht-text);
+    background: var(--ht-panel-2);
+    border: 1px solid var(--ht-border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+}
+.kds-hint-item { display: inline-flex; align-items: center; gap: 4px; }
+
+.kds-station {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--ht-panel-2);
+    border: 1px solid var(--ht-border);
+    color: var(--ht-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.kds-station.is-active {
+    color: var(--ht-accent);
+    border-color: var(--ht-accent);
 }

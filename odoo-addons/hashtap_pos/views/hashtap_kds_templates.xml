@@ -18,6 +18,8 @@
                 <div class="kds-brand">
                     <span class="kds-logo">HashTap</span>
                     <span class="kds-sub">Mutfak</span>
+                    <t t-set="station" t-value="request.params.get('station') or ''"/>
+                    <span t-if="station" class="kds-station is-active" t-esc="station"/>
                 </div>
                 <div class="kds-clock" id="kds-clock">--:--</div>
                 <div class="kds-status">
@@ -40,6 +42,14 @@
                     <div class="kds-col-body" id="col-ready"></div>
                 </section>
             </main>
+
+            <footer class="kds-hint">
+                <span class="kds-hint-item"><kbd>1</kbd>–<kbd>9</kbd> seç</span>
+                <span class="kds-hint-item"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> gezin</span>
+                <span class="kds-hint-item"><kbd>Enter</kbd> ilerlet</span>
+                <span class="kds-hint-item"><kbd>⌫</kbd> geri al</span>
+                <span class="kds-hint-item"><kbd>Esc</kbd> seçimi temizle</span>
+            </footer>
 
             <script type="text/javascript"
                     src="/hashtap_pos/static/src/js/kds.js"/>

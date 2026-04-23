@@ -28,6 +28,8 @@
     let pollTimer = null;
     let knownIds = new Set();
     let lastPayload = [];
+    let selectedIndex = -1;       // bump-bar navigation
+    const stationParam = new URLSearchParams(window.location.search).get("station") || "";
 
     // ---------------------------------------------------------- utils --
     function jsonRpc(url, params) {
@@ -69,11 +71,21 @@
     }
 
     // ---------------------------------------------------------- render --
-    function renderCard(order) {
+    function renderCard(order, visibleIndex) {
         const card = document.createElement("article");
         card.className = "kds-card";
         card.dataset.id = order.id;
         card.dataset.state = order.state;
+        card.dataset.visibleIndex = visibleIndex;
+        card.tabIndex = 0;
+        card.addEventListener("click", () => selectByIndex(visibleIndex));
+
+        if (typeof visibleIndex === "number" && visibleIndex >= 0 && visibleIndex < 9) {
+            const badge = document.createElement("span");
+            badge.className = "kds-card-index";
+            badge.textContent = String(visibleIndex + 1);
+            card.appendChild(badge);
+        }
 
         const head = document.createElement("div");
         head.className = "kds-card-head";
@@ -168,13 +180,20 @@
             if (buckets[col]) buckets[col].push(o);
         });
 
+        // Bump-bar navigation için sipariş düzenini stabilleştir: new → preparing → ready.
+        const flat = [...buckets.new, ...buckets.preparing, ...buckets.ready];
+        const indexById = new Map(flat.map((o, i) => [o.id, i]));
+
         Object.keys(buckets).forEach((key) => {
             const container = els.cols[key];
             container.innerHTML = "";
-            buckets[key].forEach((o) => container.appendChild(renderCard(o)));
+            buckets[key].forEach((o) => {
+                container.appendChild(renderCard(o, indexById.get(o.id)));
+            });
             els.counts[key].textContent = buckets[key].length;
         });
         paintElapsed();
+        applySelection();
 
         // Yeni sipariş sesli uyarı — basit beep (Opsiyonel).
         const nowIds = new Set((orders || []).map((o) => o.id));
@@ -182,6 +201,36 @@
         nowIds.forEach((id) => { if (!knownIds.has(id)) fresh.push(id); });
         if (fresh.length && knownIds.size) beep();
         knownIds = nowIds;
+    }
+
+    // ---------------------------------------------------------- selection --
+    function selectByIndex(idx) {
+        const count = document.querySelectorAll(".kds-card").length;
+        if (idx < 0 || idx >= count) return;
+        selectedIndex = idx;
+        applySelection();
+    }
+
+    function applySelection() {
+        document.querySelectorAll(".kds-card").forEach((el) => {
+            const idx = Number(el.dataset.visibleIndex);
+            const selected = idx === selectedIndex;
+            el.classList.toggle("is-selected", selected);
+            if (selected) {
+                el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+        });
+    }
+
+    function findCardByIndex(idx) {
+        return document.querySelector(`.kds-card[data-visible-index="${idx}"]`);
+    }
+
+    function currentSelectedOrderId() {
+        if (selectedIndex < 0) return null;
+        const card = findCardByIndex(selectedIndex);
+        if (!card) return null;
+        return Number(card.dataset.id);
     }
 
     // ---------------------------------------------------------- audio --
@@ -209,15 +258,73 @@
 
     // ---------------------------------------------------------- loop --
     function poll() {
-        jsonRpc("/hashtap/kds/orders.json", {})
+        const url = stationParam
+            ? `/hashtap/kds/orders.json?station=${encodeURIComponent(stationParam)}`
+            : "/hashtap/kds/orders.json";
+        jsonRpc(url, { station: stationParam || undefined })
             .then((res) => {
-                setStatus(true, "Canlı");
+                setStatus(true, stationParam ? `Canlı — ${stationParam}` : "Canlı");
                 render(res.orders || []);
             })
             .catch(() => setStatus(false, "Bağlantı yok"));
     }
 
+    // ---------------------------------------------------------- bump-bar --
+    // Fiziksel bump-bar = keyboard event'leri. Çoğu bump-bar cihazı
+    // standart USB HID tuş kombinasyonu yollar; buradaki maplemeler
+    // yaygın bir düzeni hedefler.
+    function onKeyDown(ev) {
+        // Modifier'lı tuşları yoksay (kullanıcı debugging yapıyor olabilir).
+        if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+
+        const key = ev.key;
+
+        // 1-9: o kartı seç
+        if (/^[1-9]$/.test(key)) {
+            ev.preventDefault();
+            selectByIndex(Number(key) - 1);
+            return;
+        }
+
+        // Ok tuşları: seçimi hareket ettir
+        if (key === "ArrowRight" || key === "ArrowDown") {
+            ev.preventDefault();
+            const count = document.querySelectorAll(".kds-card").length;
+            selectByIndex(Math.min(selectedIndex + 1, count - 1));
+            return;
+        }
+        if (key === "ArrowLeft" || key === "ArrowUp") {
+            ev.preventDefault();
+            selectByIndex(Math.max(selectedIndex - 1, 0));
+            return;
+        }
+
+        // Enter / Space: ilerlet
+        if (key === "Enter" || key === " ") {
+            ev.preventDefault();
+            const id = currentSelectedOrderId();
+            if (id) advanceOrder(id);
+            return;
+        }
+
+        // Backspace: geri al
+        if (key === "Backspace") {
+            ev.preventDefault();
+            const id = currentSelectedOrderId();
+            if (id) recallOrder(id);
+            return;
+        }
+
+        // Escape: seçimi temizle
+        if (key === "Escape") {
+            ev.preventDefault();
+            selectedIndex = -1;
+            applySelection();
+        }
+    }
+
     function start() {
+        window.addEventListener("keydown", onKeyDown);
         poll();
         pollTimer = setInterval(poll, POLL_MS);
     }
