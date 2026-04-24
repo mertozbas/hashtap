@@ -174,6 +174,12 @@ def seed(env):
         "email": "merhaba@zeytinvetuz.demo",
     })
 
+    # PWA base URL — restaurant.table form'unda QR URL'i bu prefix'le
+    # render eder. Dev'de customer-pwa http://localhost:5173.
+    env["ir.config_parameter"].sudo().set_param(
+        "hashtap.pwa_base_url", "http://localhost:5173",
+    )
+
     _logger.info("company = %s (currency=%s)", company.name, company.currency_id.name)
 
     # 2) Allergens
