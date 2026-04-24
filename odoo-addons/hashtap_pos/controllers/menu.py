@@ -124,3 +124,40 @@ class HashTapMenu(http.Controller):
             ],
         }
         return request.make_json_response(payload)
+
+    @http.route(
+        "/hashtap/pos/menu",
+        type="http",
+        auth="public",
+        methods=["GET"],
+        csrf=False,
+    )
+    def get_pos_menu(self, **kw):
+        """Cashier/waiter için tam menü — masa bağımsız.
+
+        Tek kiracı modelinde her masanın menüsü aynıdır. Bu endpoint
+        kasa ve garson arayüzlerinin tüketmesi için aktif tüm kategori
+        + ürünleri döner. Auth açık — kasa zaten güvenli yerel ağda.
+        """
+        lang = (kw.get("lang") or "tr").lower()
+        if lang not in ("tr", "en"):
+            lang = "tr"
+
+        company = request.env.company
+        categories = (
+            request.env["hashtap.menu.category"]
+            .sudo()
+            .search([("active", "=", True)], order="sequence, id")
+        )
+
+        payload = {
+            "restaurant": {
+                "name": company.name,
+                "currency": company.currency_id.name,
+                "language": lang,
+            },
+            "categories": [
+                _serialize_category(c, lang) for c in categories if c.item_ids
+            ],
+        }
+        return request.make_json_response(payload)

@@ -14,3 +14,10 @@ export async function menuRoutes(app: FastifyInstance) {
     return reply.send(data);
   });
 }
+
+export async function posMenuRoutes(app: FastifyInstance) {
+  app.get('/', async (_req, reply) => {
+    const data = await odooGet(env.ODOO_DB, '/hashtap/pos/menu');
+    return reply.send(data);
+  });
+}
