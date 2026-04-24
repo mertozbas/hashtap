@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, ListOrdered, Plus, Grid3x3, Settings as Cog } from 'lucide-react';
+import { Grid3x3, ListOrdered, Plus, Settings as Cog } from 'lucide-react';
 import { LiveIndicator, cn } from '@hashtap/ui';
 import { useLiveStatus } from '../store/live.js';
 
@@ -11,10 +11,9 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: 'Ana', icon: <Home className="h-5 w-5" /> },
+  { to: '/', label: 'Salon', icon: <Grid3x3 className="h-5 w-5" /> },
   { to: '/orders', label: 'Siparişler', icon: <ListOrdered className="h-5 w-5" /> },
   { to: '/orders/new', label: 'Yeni', icon: <Plus className="h-6 w-6" />, primary: true },
-  { to: '/tables', label: 'Masalar', icon: <Grid3x3 className="h-5 w-5" /> },
   { to: '/settings', label: 'Ayarlar', icon: <Cog className="h-5 w-5" /> },
 ];
 

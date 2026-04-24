@@ -439,7 +439,7 @@ def seed(env):
     pp_model = env["hashtap.payment.provider"]
     mock_pp = pp_model.search([("code", "=", "mock")], limit=1)
     if not mock_pp:
-        pp_model.create({
+        mock_pp = pp_model.create({
             "name": "Mock (Demo)",
             "code": "mock",
             "active": True,
@@ -447,6 +447,32 @@ def seed(env):
         })
     else:
         mock_pp.active = True
+
+    # 7b) Ödeme yöntemleri — demo için hepsi açık
+    pm_model = env["hashtap.payment.method"].with_context(active_test=False)
+    method_specs = [
+        ("card", "Kredi / Banka Kartı (3DS)", "credit-card", 10, True),
+        ("apple_pay", "Apple Pay", "smartphone", 20, True),
+        ("google_pay", "Google Pay", "smartphone", 30, True),
+        ("cash", "Nakit (kasada)", "wallet", 40, False),
+        ("pay_at_counter", "Kasada öde (kart/nakit)", "store", 50, False),
+    ]
+    for code, name, icon, seq, online in method_specs:
+        pm = pm_model.search(
+            [("code", "=", code), ("company_id", "=", company.id)], limit=1,
+        )
+        vals = {
+            "name": name,
+            "code": code,
+            "icon": icon,
+            "sequence": seq,
+            "active": True,
+            "provider_id": mock_pp.id if online else False,
+        }
+        if pm:
+            pm.write(vals)
+        else:
+            pm_model.create(vals)
 
     # 8) e-Arşiv sağlayıcı — mock
     earsiv_model = env["hashtap.earsiv.provider"]

@@ -1,41 +1,63 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardTitle, CardDescription, Button, Input, Badge, Skeleton, EmptyState, useToast } from '@hashtap/ui';
-import { ChevronLeft, UtensilsCrossed } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Card,
+  CardTitle,
+  CardDescription,
+  Button,
+  Input,
+  Badge,
+  Skeleton,
+  EmptyState,
+  useToast,
+} from '@hashtap/ui';
+import { ChevronLeft, UtensilsCrossed, Send } from 'lucide-react';
 import { formatKurus } from '../lib/format.js';
 import { fetchPosMenu, type MenuItem, type MenuPayload } from '../lib/menu.js';
+import { fetchTables, submitOrder, type PosTable } from '../lib/pos.js';
 
 interface CartLine {
   id: number;
   name: string;
   priceKurus: number;
   qty: number;
+  note?: string;
 }
 
 export function NewOrderScreen() {
   const navigate = useNavigate();
   const toast = useToast();
-  const [tableLabel, setTableLabel] = useState('');
-  const [cart, setCart] = useState<CartLine[]>([]);
+  const [search] = useSearchParams();
+  const prefillTableId = Number(search.get('table')) || null;
+
+  const [tables, setTables] = useState<PosTable[]>([]);
+  const [tableId, setTableId] = useState<number | null>(prefillTableId);
   const [menu, setMenu] = useState<MenuPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [query, setQuery] = useState('');
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [customerNote, setCustomerNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPosMenu()
-      .then((data) => {
+    Promise.all([fetchPosMenu(), fetchTables()])
+      .then(([m, t]) => {
         if (cancelled) return;
-        setMenu(data);
-        setCategoryId(data.categories[0]?.id ?? null);
+        setMenu(m);
+        setTables(t);
+        setCategoryId(m.categories[0]?.id ?? null);
+        if (!prefillTableId && t.length > 0) {
+          const firstFree = t.find((x) => x.status === 'free') ?? t[0];
+          if (firstFree) setTableId(firstFree.id);
+        }
         setError(null);
       })
       .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'bilinmeyen hata');
+        if (!cancelled) setError(err instanceof Error ? err.message : 'unknown');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -43,7 +65,7 @@ export function NewOrderScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [prefillTableId]);
 
   const activeItems = useMemo<MenuItem[]>(() => {
     if (!menu) return [];
@@ -58,6 +80,7 @@ export function NewOrderScreen() {
   }, [menu, categoryId, query]);
 
   const total = cart.reduce((sum, l) => sum + l.priceKurus * l.qty, 0);
+  const selectedTable = tables.find((t) => t.id === tableId);
 
   function addItem(item: MenuItem) {
     setCart((prev) => {
@@ -65,7 +88,10 @@ export function NewOrderScreen() {
       if (existing) {
         return prev.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l));
       }
-      return [...prev, { id: item.id, name: item.name.tr, priceKurus: item.price_kurus, qty: 1 }];
+      return [
+        ...prev,
+        { id: item.id, name: item.name.tr, priceKurus: item.price_kurus, qty: 1 },
+      ];
     });
   }
 
@@ -83,8 +109,8 @@ export function NewOrderScreen() {
     setCart((prev) => prev.filter((l) => l.id !== id));
   }
 
-  async function submitOrder() {
-    if (!tableLabel.trim()) {
+  async function sendToKitchen() {
+    if (!tableId) {
       toast.show({ title: 'Masa seçin', tone: 'warning' });
       return;
     }
@@ -92,13 +118,31 @@ export function NewOrderScreen() {
       toast.show({ title: 'Sepet boş', tone: 'warning' });
       return;
     }
-    toast.show({
-      title: 'Sipariş gönderildi',
-      description: `Masa ${tableLabel} · ${formatKurus(total)}`,
-      tone: 'success',
-    });
-    setCart([]);
-    setTimeout(() => navigate('/orders'), 800);
+    setSubmitting(true);
+    try {
+      const order = await submitOrder({
+        table_id: tableId,
+        items: cart.map((l) => ({ item_id: l.id, quantity: l.qty, note: l.note })),
+        customer_note: customerNote || undefined,
+        require_receipt: false,
+      });
+      toast.show({
+        title: `${order.reference} açıldı`,
+        description: `Masa ${order.table_name} · ${formatKurus(order.total_kurus)}`,
+        tone: 'success',
+      });
+      setCart([]);
+      setCustomerNote('');
+      setTimeout(() => navigate(`/tables/${order.table_id}`), 500);
+    } catch (err) {
+      toast.show({
+        title: 'Sipariş gönderilemedi',
+        description: err instanceof Error ? err.message : 'unknown',
+        tone: 'error',
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -124,13 +168,23 @@ export function NewOrderScreen() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-[160px_1fr] gap-3">
-          <Input
-            label="Masa"
-            placeholder="örn. A1"
-            value={tableLabel}
-            onChange={(e) => setTableLabel(e.currentTarget.value)}
-          />
+        <div className="mt-6 grid gap-3 md:grid-cols-[1fr_1fr]">
+          <label className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-textc-secondary">Masa</span>
+            <select
+              value={tableId ?? ''}
+              onChange={(e) => setTableId(Number(e.currentTarget.value) || null)}
+              className="ht-glass h-touch rounded-lg border border-white/14 px-3 text-base text-textc-primary focus-visible:outline-none focus-visible:border-brand-500"
+            >
+              <option value="">— Seçin —</option>
+              {tables.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.floor} · {t.name} ({t.seats} kişilik) —{' '}
+                  {t.status === 'free' ? 'boş' : 'açık'}
+                </option>
+              ))}
+            </select>
+          </label>
           <Input
             label="Menüde ara"
             placeholder="örn. levrek"
@@ -212,7 +266,9 @@ export function NewOrderScreen() {
 
       <Card>
         <CardTitle>Sepet</CardTitle>
-        <CardDescription>{cart.length} satır</CardDescription>
+        <CardDescription>
+          {cart.length} satır{selectedTable ? ` · Masa ${selectedTable.name}` : ''}
+        </CardDescription>
         <ul className="mt-4 space-y-2">
           {cart.length === 0 ? (
             <li className="text-sm text-textc-muted">Sepet boş — soldan ürün ekleyin.</li>
@@ -248,14 +304,34 @@ export function NewOrderScreen() {
             ))
           )}
         </ul>
+
+        <div className="mt-4">
+          <Input
+            label="Müşteri notu (opsiyonel)"
+            placeholder="Alerji, pişirme isteği vs."
+            value={customerNote}
+            onChange={(e) => setCustomerNote(e.currentTarget.value)}
+          />
+        </div>
+
         <div className="mt-6 border-t border-white/8 pt-4">
           <div className="flex items-baseline justify-between">
             <span className="text-xs uppercase tracking-wide text-textc-muted">Toplam</span>
             <span className="text-3xl font-bold tabular-nums">{formatKurus(total)}</span>
           </div>
-          <Button size="lg" fullWidth className="mt-4" onClick={submitOrder}>
-            Mutfağa gönder
+          <Button
+            size="lg"
+            fullWidth
+            className="mt-4"
+            onClick={sendToKitchen}
+            loading={submitting}
+            leftIcon={<Send className="h-5 w-5" />}
+          >
+            Masayı aç
           </Button>
+          <p className="mt-2 text-xs text-textc-muted">
+            Sipariş açıldıktan sonra masa detayında mutfağa gönderip ödeme alabilirsiniz.
+          </p>
         </div>
       </Card>
     </div>
