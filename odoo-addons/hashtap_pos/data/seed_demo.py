@@ -8,13 +8,51 @@ Idempotent: zaten seed edilmişse atlar (name="Zeytin & Tuz" kontrolü).
 Demo konsept: Alaçatı tarzı lüks Ege lokantası (kurgusal). Terakki Alaçatı
 menüsünden ilham alındı; restoran kimliği tamamen uydurulmuştur.
 """
+import base64
 import logging
+import os
 import secrets
 from datetime import datetime, timedelta
 
 from odoo import fields
 
 _logger = logging.getLogger("hashtap.seed_demo")
+
+
+def _customize_system_bot(env):
+    """OdooBot → HashTap Bot rebrand.
+
+    Sistem kullanıcısı (id=1) Odoo'nun otomatik mesajlarında ve Discuss
+    arayüzünde "OdooBot" olarak görünür. Restoran sahibi/kullanıcısı
+    bunu HashTap Bot olarak görsün diye partner adını ve avatarını
+    güncelliyoruz.
+    """
+    bot_user = env["res.users"].sudo().browse(1)
+    if not bot_user.exists():
+        return
+    if bot_user.partner_id.name == "HashTap Bot":
+        return  # idempotent
+
+    icon_path = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "static",
+        "description",
+        "icon.png",
+    )
+    image_b64 = None
+    if os.path.exists(icon_path):
+        with open(icon_path, "rb") as f:
+            image_b64 = base64.b64encode(f.read())
+
+    partner_vals = {"name": "HashTap Bot"}
+    if image_b64:
+        partner_vals["image_1920"] = image_b64
+    bot_user.partner_id.write(partner_vals)
+    bot_user.write({
+        "name": "HashTap Bot",
+        "signature": "<p>— HashTap Bot</p>",
+    })
 
 
 # ─────────────────────────────────────────────── Yardımcı — idempotency ───
@@ -179,6 +217,9 @@ def seed(env):
     env["ir.config_parameter"].sudo().set_param(
         "hashtap.pwa_base_url", "http://localhost:5173",
     )
+
+    # OdooBot → HashTap Bot rebrand (sistem botu)
+    _customize_system_bot(env)
 
     _logger.info("company = %s (currency=%s)", company.name, company.currency_id.name)
 
