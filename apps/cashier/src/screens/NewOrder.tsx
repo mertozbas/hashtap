@@ -248,13 +248,13 @@ export function NewOrderScreen() {
           <EmptyState
             icon={<UtensilsCrossed />}
             title="Menü yüklenemedi"
-            description={`Gateway'e ulaşılamadı: ${error}. Odoo + gateway çalışıyor mu?`}
+            description={`HashTap sunucusuna ulaşılamadı: ${error}. Ayarlar ekranından sistem sağlığına bak.`}
           />
         ) : !menu || menu.categories.length === 0 ? (
           <EmptyState
             icon={<UtensilsCrossed />}
             title="Menü boş"
-            description="Odoo → HashTap → Menü Katalogu → Menü Kalemleri altından ürün ekleyin."
+            description="Yönetici Paneli → HashTap → Menü Katalogu → Menü Kalemleri altından ürün ekleyin."
           />
         ) : (
           <>

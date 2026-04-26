@@ -113,7 +113,8 @@ export function HomeScreen() {
         <Card>
           <CardTitle>Salon yüklenemedi</CardTitle>
           <CardDescription className="mt-2">
-            Gateway'e ulaşılamadı ({error}). Odoo + gateway çalışıyor mu?
+            HashTap sunucusuna ulaşılamadı ({error}). Ayarlar ekranından
+            sistem sağlığına bak.
           </CardDescription>
         </Card>
       ) : (

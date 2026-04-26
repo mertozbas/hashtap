@@ -89,13 +89,13 @@ export function SettingsScreen() {
         </div>
         <ul className="mt-4 divide-y divide-white/6">
           <li className="flex items-center justify-between py-3">
-            <span className="text-sm font-semibold">Gateway (BFF)</span>
+            <span className="text-sm font-semibold">API ağ geçidi</span>
             <Badge tone={gateway?.status === 'ok' ? 'success' : 'danger'} dot pulsing={gateway?.status === 'ok'}>
               {gateway?.status === 'ok' ? 'çalışıyor' : 'erişilemiyor'}
             </Badge>
           </li>
           <li className="flex items-center justify-between py-3">
-            <span className="text-sm font-semibold">Odoo (backend)</span>
+            <span className="text-sm font-semibold">Yönetici sunucusu</span>
             <Badge tone={odoo?.ok ? 'success' : 'danger'} dot pulsing={odoo?.ok}>
               {odoo?.ok ? 'çalışıyor' : odoo?.error ?? 'erişilemiyor'}
             </Badge>
@@ -119,16 +119,18 @@ export function SettingsScreen() {
       <Card>
         <CardTitle>Hızlı linkler</CardTitle>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          <Quick href="http://localhost:8069/web" label="Odoo admin" />
+          <Quick href="http://localhost:8069/web" label="Yönetici Paneli" />
           <Quick href="http://localhost:8069/hashtap/kds" label="Mutfak ekranı" />
           <Quick href="http://localhost:8069/web#action=412" label="Menü kalemleri" />
           <Quick href="http://localhost:8069/web#action=415" label="Masalar" />
           <Quick href="http://localhost:8069/web#action=416" label="QR siparişleri" />
           <Quick href="http://localhost:8069/web#action=243" label="Müşteri faturaları" />
-          <Quick href={info.pwaBaseUrl} label="Müşteri PWA" />
+          <Quick href="http://localhost:8069/web#action=355" label="Stok / Ürünler" />
+          <Quick href={info.pwaBaseUrl} label="Müşteri menüsü (PWA)" />
         </ul>
         <p className="mt-3 text-xs text-textc-muted">
-          Operasyon ekibi için Odoo'nun ilgili sayfaları. Yeni sekmede açılır.
+          Operasyon ekibi için yönetici panelinin ilgili sayfaları. Yeni
+          sekmede açılır.
         </p>
       </Card>
     </div>
