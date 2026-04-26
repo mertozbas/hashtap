@@ -78,4 +78,52 @@ export async function posRoutes(app: FastifyInstance) {
     );
     return reply.send(unwrap(body));
   });
+
+  app.post('/orders/:orderId/lines', async (req, reply) => {
+    const { orderId } = req.params as { orderId: string };
+    const body = await odooJsonRpc(
+      env.ODOO_DB,
+      `/hashtap/pos/orders/${orderId}/lines`,
+      req.body ?? {},
+    );
+    return reply.send(unwrap(body));
+  });
+
+  app.post('/orders/:orderId/lines/:lineId', async (req, reply) => {
+    const { orderId, lineId } = req.params as { orderId: string; lineId: string };
+    const body = await odooJsonRpc(
+      env.ODOO_DB,
+      `/hashtap/pos/orders/${orderId}/lines/${lineId}`,
+      req.body ?? {},
+    );
+    return reply.send(unwrap(body));
+  });
+
+  app.post('/orders/:orderId/split', async (req, reply) => {
+    const { orderId } = req.params as { orderId: string };
+    const body = await odooJsonRpc(
+      env.ODOO_DB,
+      `/hashtap/pos/orders/${orderId}/split`,
+      req.body ?? {},
+    );
+    return reply.send(unwrap(body));
+  });
+
+  // Gün sonu / Z raporu
+  app.get('/day/summary', async (req, reply) => {
+    const { day } = req.query as { day?: string };
+    const q = day ? `?day=${encodeURIComponent(day)}` : '';
+    const data = await odooGet(env.ODOO_DB, `/hashtap/pos/day/summary${q}`);
+    return reply.send(data);
+  });
+
+  app.get('/day/closures', async (_req, reply) => {
+    const data = await odooGet(env.ODOO_DB, '/hashtap/pos/day/closures');
+    return reply.send(data);
+  });
+
+  app.post('/day/close', async (req, reply) => {
+    const body = await odooJsonRpc(env.ODOO_DB, '/hashtap/pos/day/close', req.body ?? {});
+    return reply.send(unwrap(body));
+  });
 }

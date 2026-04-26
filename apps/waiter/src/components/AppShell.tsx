@@ -1,12 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Grid3x3, Bell, LogOut } from 'lucide-react';
 import { LiveIndicator, cn } from '@hashtap/ui';
-import { useLiveStatus } from '../store/live.js';
+import { useLiveStatus, useLiveHealthPolling } from '../store/live.js';
 import { useNotifStore } from '../store/notifications.js';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const status = useLiveStatus();
+  useLiveHealthPolling();
   const unread = useNotifStore((s) => s.items.filter((n) => !n.readAt).length);
 
   return (

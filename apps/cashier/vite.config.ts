@@ -7,6 +7,9 @@ export default defineConfig({
     port: 5180,
     proxy: {
       '/v1': { target: 'http://localhost:4000', changeOrigin: true },
+      '/health': { target: 'http://localhost:4000', changeOrigin: true },
+      '/web': { target: 'http://localhost:8069', changeOrigin: true },
+      '/hashtap': { target: 'http://localhost:8069', changeOrigin: true },
     },
   },
 });

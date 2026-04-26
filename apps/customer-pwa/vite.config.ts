@@ -13,7 +13,22 @@ export default defineConfig({
         name: 'HashTap',
         short_name: 'HashTap',
         description: 'QR sipariş ve ödeme',
-        theme_color: '#0b2545',
+        theme_color: '#FF6B3D',
+        background_color: '#FAFBFC',
+        icons: [
+          {
+            src: '/favicon.svg',
+            sizes: '64x64 192x192 512x512',
+            type: 'image/svg+xml',
+            purpose: 'any',
+          },
+          {
+            src: '/favicon.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'maskable',
+          },
+        ],
       },
     }),
   ],
@@ -21,6 +36,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/hashtap': {
+        target: 'http://localhost:8069',
+        changeOrigin: true,
+      },
+      '/web': {
         target: 'http://localhost:8069',
         changeOrigin: true,
       },

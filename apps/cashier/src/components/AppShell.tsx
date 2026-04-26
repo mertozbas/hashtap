@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Grid3x3, ListOrdered, Plus, ClipboardCheck, Settings as Cog } from 'lucide-react';
 import { LiveIndicator, cn } from '@hashtap/ui';
-import { useLiveStatus } from '../store/live.js';
+import { useLiveStatus, useLiveHealthPolling } from '../store/live.js';
 
 interface NavItem {
   to: string;
@@ -21,6 +21,7 @@ const NAV: NavItem[] = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const status = useLiveStatus();
+  useLiveHealthPolling();
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between px-6 py-4 border-b border-white/8 ht-glass">
