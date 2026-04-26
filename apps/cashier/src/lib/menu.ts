@@ -1,3 +1,17 @@
+export interface Modifier {
+  id: number;
+  name: { tr: string; en: string };
+  price_delta_kurus: number;
+}
+
+export interface ModifierGroup {
+  id: number;
+  name: { tr: string; en: string };
+  min_select: number;
+  max_select: number;
+  modifiers: Modifier[];
+}
+
 export interface MenuItem {
   id: number;
   name: { tr: string; en: string };
@@ -9,7 +23,7 @@ export interface MenuItem {
   dietary: string[];
   prep_time_minutes: number;
   is_featured: boolean;
-  modifier_groups: unknown[];
+  modifier_groups: ModifierGroup[];
 }
 
 export interface MenuCategory {

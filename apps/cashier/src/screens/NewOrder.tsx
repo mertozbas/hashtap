@@ -15,13 +15,23 @@ import { ChevronLeft, UtensilsCrossed, Send } from 'lucide-react';
 import { formatKurus } from '../lib/format.js';
 import { fetchPosMenu, type MenuItem, type MenuPayload } from '../lib/menu.js';
 import { fetchTables, submitOrder, type PosTable } from '../lib/pos.js';
+import { ModifierModal, type ModifierSelection } from '../components/ModifierModal.js';
 
 interface CartLine {
-  id: number;
+  // Aynı item + aynı modifier kombinasyonu için tek satır
+  key: string;
+  itemId: number;
   name: string;
   priceKurus: number;
+  modifierIds: number[];
+  modifierNames: string[];
+  modifierDeltaKurus: number;
   qty: number;
   note?: string;
+}
+
+function lineKey(itemId: number, modifierIds: number[]): string {
+  return `${itemId}:${[...modifierIds].sort((a, b) => a - b).join(',')}`;
 }
 
 export function NewOrderScreen() {
@@ -40,6 +50,7 @@ export function NewOrderScreen() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customerNote, setCustomerNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [modalItem, setModalItem] = useState<MenuItem | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,34 +90,63 @@ export function NewOrderScreen() {
     return active?.items ?? [];
   }, [menu, categoryId, query]);
 
-  const total = cart.reduce((sum, l) => sum + l.priceKurus * l.qty, 0);
+  const total = cart.reduce(
+    (sum, l) => sum + l.qty * (l.priceKurus + l.modifierDeltaKurus),
+    0,
+  );
   const selectedTable = tables.find((t) => t.id === tableId);
 
-  function addItem(item: MenuItem) {
+  function pushLine(item: MenuItem, sel: ModifierSelection | null) {
+    const modifierIds = sel?.modifierIds ?? [];
+    const modifierNames = sel?.modifierNames ?? [];
+    const modifierDelta = sel?.modifierDeltaKurus ?? 0;
+    const note = sel?.note;
+    const key = lineKey(item.id, modifierIds);
+
     setCart((prev) => {
-      const existing = prev.find((l) => l.id === item.id);
+      const existing = prev.find((l) => l.key === key && l.note === note);
       if (existing) {
-        return prev.map((l) => (l.id === item.id ? { ...l, qty: l.qty + 1 } : l));
+        return prev.map((l) =>
+          l.key === existing.key && l.note === note ? { ...l, qty: l.qty + 1 } : l,
+        );
       }
       return [
         ...prev,
-        { id: item.id, name: item.name.tr, priceKurus: item.price_kurus, qty: 1 },
+        {
+          key,
+          itemId: item.id,
+          name: item.name.tr,
+          priceKurus: item.price_kurus,
+          modifierIds,
+          modifierNames,
+          modifierDeltaKurus: modifierDelta,
+          qty: 1,
+          note,
+        },
       ];
     });
   }
 
-  function decItem(id: number) {
+  function addItem(item: MenuItem) {
+    if (item.modifier_groups.length > 0) {
+      setModalItem(item);
+    } else {
+      pushLine(item, null);
+    }
+  }
+
+  function decItem(key: string) {
     setCart((prev) =>
       prev.flatMap((l) => {
-        if (l.id !== id) return [l];
+        if (l.key !== key) return [l];
         const next = l.qty - 1;
         return next <= 0 ? [] : [{ ...l, qty: next }];
       }),
     );
   }
 
-  function removeItem(id: number) {
-    setCart((prev) => prev.filter((l) => l.id !== id));
+  function removeItem(key: string) {
+    setCart((prev) => prev.filter((l) => l.key !== key));
   }
 
   async function sendToKitchen() {
@@ -122,7 +162,12 @@ export function NewOrderScreen() {
     try {
       const order = await submitOrder({
         table_id: tableId,
-        items: cart.map((l) => ({ item_id: l.id, quantity: l.qty, note: l.note })),
+        items: cart.map((l) => ({
+          item_id: l.itemId,
+          quantity: l.qty,
+          modifier_ids: l.modifierIds,
+          note: l.note,
+        })),
         customer_note: customerNote || undefined,
         require_receipt: false,
       });
@@ -275,18 +320,28 @@ export function NewOrderScreen() {
           ) : (
             cart.map((l) => (
               <li
-                key={l.id}
-                className="flex items-center justify-between rounded-lg bg-white/4 px-3 py-2"
+                key={l.key}
+                className="flex items-start justify-between gap-2 rounded-lg bg-white/4 px-3 py-2"
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold">{l.name}</div>
-                  <div className="text-xs text-textc-muted tabular-nums">
-                    {l.qty} × {formatKurus(l.priceKurus)}
+                  {l.modifierNames.length > 0 ? (
+                    <div className="truncate text-xs text-textc-muted">
+                      {l.modifierNames.join(', ')}
+                    </div>
+                  ) : null}
+                  {l.note ? (
+                    <div className="truncate text-xs italic text-textc-muted">
+                      not: {l.note}
+                    </div>
+                  ) : null}
+                  <div className="mt-0.5 text-xs text-textc-muted tabular-nums">
+                    {l.qty} × {formatKurus(l.priceKurus + l.modifierDeltaKurus)}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => decItem(l.id)}
+                    onClick={() => decItem(l.key)}
                     className="h-8 w-8 rounded-full ht-glass text-sm font-semibold hover:bg-white/10"
                     aria-label="Azalt"
                   >
@@ -294,7 +349,7 @@ export function NewOrderScreen() {
                   </button>
                   <span className="w-6 text-center text-sm font-bold tabular-nums">{l.qty}</span>
                   <button
-                    onClick={() => removeItem(l.id)}
+                    onClick={() => removeItem(l.key)}
                     className="text-xs text-state-danger hover:underline"
                   >
                     sil
@@ -334,6 +389,15 @@ export function NewOrderScreen() {
           </p>
         </div>
       </Card>
+
+      <ModifierModal
+        item={modalItem}
+        open={Boolean(modalItem)}
+        onClose={() => setModalItem(null)}
+        onConfirm={(sel) => {
+          if (modalItem) pushLine(modalItem, sel);
+        }}
+      />
     </div>
   );
 }

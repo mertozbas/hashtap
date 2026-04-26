@@ -25,6 +25,12 @@ export type PaymentState = 'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded'
 
 export type EarsivState = 'not_required' | 'pending' | 'issued' | 'failed';
 
+export interface PosOrderLineModifier {
+  id: number;
+  name: { tr: string; en: string };
+  price_delta_kurus: number;
+}
+
 export interface PosOrderLine {
   id: number;
   item_id: number;
@@ -33,6 +39,8 @@ export interface PosOrderLine {
   unit_price_kurus: number;
   modifier_total_kurus: number;
   subtotal_kurus: number;
+  modifier_ids: number[];
+  modifiers: PosOrderLineModifier[];
   note: string;
 }
 
@@ -86,9 +94,10 @@ export async function fetchOrder(orderId: number): Promise<PosOrder> {
   return body.order;
 }
 
-interface SubmitLine {
+export interface SubmitLine {
   item_id: number;
   quantity: number;
+  modifier_ids?: number[];
   note?: string;
 }
 
@@ -109,6 +118,124 @@ export async function submitOrder(payload: SubmitOrderPayload): Promise<PosOrder
   if (body.error) throw new Error(body.error);
   if (!body.order) throw new Error('no_order_in_response');
   return body.order;
+}
+
+export async function addOrderLines(
+  orderId: number,
+  items: SubmitLine[],
+): Promise<PosOrder> {
+  const res = await fetch(`/v1/pos/orders/${orderId}/lines`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ items }),
+  });
+  const body = await json<{ order?: PosOrder; error?: string }>(res);
+  if (body.error) throw new Error(body.error);
+  if (!body.order) throw new Error('no_order');
+  return body.order;
+}
+
+export async function updateOrderLine(
+  orderId: number,
+  lineId: number,
+  changes: { quantity?: number; note?: string; delete?: boolean },
+): Promise<PosOrder> {
+  const res = await fetch(`/v1/pos/orders/${orderId}/lines/${lineId}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(changes),
+  });
+  const body = await json<{ order?: PosOrder; error?: string }>(res);
+  if (body.error) throw new Error(body.error);
+  if (!body.order) throw new Error('no_order');
+  return body.order;
+}
+
+export interface BillSplit {
+  amount_kurus: number;
+  method_code: PaymentMethodCode;
+}
+
+export async function splitBill(
+  orderId: number,
+  splits: BillSplit[],
+): Promise<PosOrder> {
+  const res = await fetch(`/v1/pos/orders/${orderId}/split`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ splits }),
+  });
+  const body = await json<{ order?: PosOrder; error?: string }>(res);
+  if (body.error) throw new Error(body.error);
+  if (!body.order) throw new Error('no_order');
+  return body.order;
+}
+
+export interface DaySummaryMethod {
+  method_code: string;
+  order_count: number;
+  total_kurus: number;
+}
+
+export interface DaySummary {
+  day: string;
+  totals: {
+    order_count: number;
+    paid_count: number;
+    open_count: number;
+    gross_kurus: number;
+    collected_kurus: number;
+    unpaid_kurus: number;
+  };
+  by_method: DaySummaryMethod[];
+}
+
+export async function fetchDaySummary(day?: string): Promise<DaySummary> {
+  const q = day ? `?day=${encodeURIComponent(day)}` : '';
+  return json<DaySummary>(await fetch(`/v1/pos/day/summary${q}`));
+}
+
+export interface DayClosureRow {
+  id: number;
+  day: string | null;
+  order_count: number;
+  gross_kurus: number;
+  collected_kurus: number;
+  cash_system_kurus: number;
+  cash_counted_kurus: number;
+  diff_kurus: number;
+  note: string;
+  closed_at: string | null;
+}
+
+export async function fetchDayClosures(): Promise<DayClosureRow[]> {
+  const body = await json<{ closures: DayClosureRow[] }>(
+    await fetch('/v1/pos/day/closures'),
+  );
+  return body.closures;
+}
+
+export async function closeDay(
+  day: string,
+  cashCountedKurus: number,
+  note: string = '',
+): Promise<{ z_report_id: number; diff_kurus: number | null }> {
+  const res = await fetch('/v1/pos/day/close', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ day, cash_counted_kurus: cashCountedKurus, note }),
+  });
+  const body = await json<{
+    z_report_id?: number;
+    diff_kurus?: number | null;
+    error?: string;
+  }>(res);
+  if (body.error) throw new Error(body.error);
+  if (typeof body.z_report_id !== 'number') throw new Error('no_z_report');
+  return {
+    z_report_id: body.z_report_id,
+    diff_kurus: body.diff_kurus ?? null,
+  };
 }
 
 export async function fireKitchen(orderId: number): Promise<PosOrder> {

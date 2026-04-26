@@ -10,6 +10,7 @@ import {
 } from '../api/menu.js';
 import { useCart } from '../store/cart.js';
 import { Layout } from '../components/Layout.js';
+import { ModifierModal, type ModifierSelection } from '../components/ModifierModal.js';
 
 type State =
   | { status: 'loading' }
@@ -173,8 +174,10 @@ export function MenuPage() {
 function MenuItemRow({ item, currency }: { item: MenuItem; currency: string }) {
   const addItem = useCart((s) => s.addItem);
   const [added, setAdded] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const hasModifiers = item.modifier_groups.length > 0;
 
-  const onAdd = () => {
+  function quickAdd() {
     addItem({
       itemId: item.id,
       nameTr: item.name.tr,
@@ -185,7 +188,29 @@ function MenuItemRow({ item, currency }: { item: MenuItem; currency: string }) {
     });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 900);
-  };
+  }
+
+  function onConfirm(sel: ModifierSelection) {
+    addItem({
+      itemId: item.id,
+      nameTr: item.name.tr,
+      unitPriceKurus: item.price_kurus,
+      modifierIds: sel.modifierIds,
+      modifierNames: sel.modifierNames,
+      modifierDeltaKurus: sel.modifierDeltaKurus,
+      note: sel.note || undefined,
+    });
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 900);
+  }
+
+  function onAdd() {
+    if (hasModifiers) {
+      setModalOpen(true);
+    } else {
+      quickAdd();
+    }
+  }
 
   return (
     <li className="flex items-baseline gap-4">
@@ -209,11 +234,16 @@ function MenuItemRow({ item, currency }: { item: MenuItem; currency: string }) {
             Alerjen: {item.allergens.join(' · ')}
           </p>
         ) : null}
+        {hasModifiers ? (
+          <p className="text-[11px] tracking-[0.12em] uppercase text-stone-400 mt-1">
+            Seçenekler var
+          </p>
+        ) : null}
       </div>
       <button
         type="button"
         onClick={onAdd}
-        aria-label="Sepete ekle"
+        aria-label={hasModifiers ? 'Seçenekleri aç' : 'Sepete ekle'}
         className={`shrink-0 w-9 h-9 flex items-center justify-center border transition-all ${
           added
             ? 'bg-stone-900 border-stone-900 text-white'
@@ -222,6 +252,15 @@ function MenuItemRow({ item, currency }: { item: MenuItem; currency: string }) {
       >
         <Plus className="w-4 h-4" />
       </button>
+      {hasModifiers ? (
+        <ModifierModal
+          item={item}
+          currency={currency}
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onConfirm={onConfirm}
+        />
+      ) : null}
     </li>
   );
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Wallet, CreditCard, ChefHat, CheckCircle2, X } from 'lucide-react';
+import { ChevronLeft, Wallet, CreditCard, ChefHat, CheckCircle2, X, Plus, Trash2, Split } from 'lucide-react';
 import {
   Button,
   Card,
@@ -18,11 +18,15 @@ import {
   fetchTableDetail,
   fireKitchen,
   payOffline,
+  splitBill,
+  updateOrderLine,
+  type BillSplit,
   type PaymentMethodCode,
   type PosOrder,
   type TableDetailResponse,
 } from '../lib/pos.js';
 import { formatKurus } from '../lib/format.js';
+import { SplitBillModal } from '../components/SplitBillModal.js';
 
 const STATE_LABEL: Record<PosOrder['state'], string> = {
   placed: 'Alındı',
@@ -73,6 +77,7 @@ export function TableDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payingOrder, setPayingOrder] = useState<PosOrder | null>(null);
+  const [splittingOrder, setSplittingOrder] = useState<PosOrder | null>(null);
 
   const load = useCallback(() => {
     const id = Number(tableId);
@@ -145,6 +150,51 @@ export function TableDetailScreen() {
     } catch (err) {
       toast.show({
         title: 'Ödeme alınamadı',
+        description: err instanceof Error ? err.message : 'unknown',
+        tone: 'error',
+      });
+    }
+  }
+
+  async function onDeleteLine(order: PosOrder, lineId: number) {
+    if (!window.confirm('Bu kalem silinsin mi?')) return;
+    try {
+      await updateOrderLine(order.id, lineId, { delete: true });
+      toast.show({ title: 'Kalem silindi', tone: 'success' });
+      await load();
+    } catch (err) {
+      toast.show({
+        title: 'Silinemedi',
+        description: err instanceof Error ? err.message : 'unknown',
+        tone: 'error',
+      });
+    }
+  }
+
+  async function onLineQty(order: PosOrder, lineId: number, qty: number) {
+    if (qty < 1) return;
+    try {
+      await updateOrderLine(order.id, lineId, { quantity: qty });
+      await load();
+    } catch (err) {
+      toast.show({
+        title: 'Adet güncellenemedi',
+        description: err instanceof Error ? err.message : 'unknown',
+        tone: 'error',
+      });
+    }
+  }
+
+  async function onSplitConfirm(splits: BillSplit[]) {
+    if (!splittingOrder) return;
+    try {
+      await splitBill(splittingOrder.id, splits);
+      toast.show({ title: 'Hesap bölündü ve tahsil edildi', tone: 'success' });
+      setSplittingOrder(null);
+      await load();
+    } catch (err) {
+      toast.show({
+        title: 'Hesap bölünemedi',
         description: err instanceof Error ? err.message : 'unknown',
         tone: 'error',
       });
@@ -239,23 +289,59 @@ export function TableDetailScreen() {
               </div>
 
               <ul className="mt-4 divide-y divide-white/6 rounded-lg bg-white/4 px-4">
-                {order.lines.map((line) => (
-                  <li
-                    key={line.id}
-                    className="flex items-center justify-between gap-3 py-2 text-sm"
-                  >
-                    <div className="flex-1">
-                      <span className="font-semibold tabular-nums">{line.quantity}× </span>
-                      <span>{line.item_name}</span>
-                      {line.note ? (
-                        <span className="ml-2 text-xs text-textc-muted">
-                          (not: {line.note})
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="tabular-nums">{formatKurus(line.subtotal_kurus)}</div>
-                  </li>
-                ))}
+                {order.lines.map((line) => {
+                  const editable = order.payment_state !== 'paid' && order.state !== 'served';
+                  return (
+                    <li
+                      key={line.id}
+                      className="flex items-start justify-between gap-3 py-2 text-sm"
+                    >
+                      <div className="flex-1">
+                        <span className="font-semibold tabular-nums">{line.quantity}× </span>
+                        <span>{line.item_name}</span>
+                        {line.modifiers.length > 0 ? (
+                          <span className="ml-2 text-xs text-textc-muted">
+                            ({line.modifiers.map((m) => m.name.tr).join(', ')})
+                          </span>
+                        ) : null}
+                        {line.note ? (
+                          <div className="text-xs italic text-textc-muted">
+                            not: {line.note}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {editable ? (
+                          <>
+                            <button
+                              onClick={() => onLineQty(order, line.id, line.quantity - 1)}
+                              className="h-7 w-7 rounded-full ht-glass text-xs hover:bg-white/10"
+                              aria-label="Adet azalt"
+                              disabled={line.quantity <= 1}
+                            >
+                              −
+                            </button>
+                            <button
+                              onClick={() => onLineQty(order, line.id, line.quantity + 1)}
+                              className="h-7 w-7 rounded-full ht-glass text-xs hover:bg-white/10"
+                              aria-label="Adet artır"
+                            >
+                              +
+                            </button>
+                            <button
+                              onClick={() => onDeleteLine(order, line.id)}
+                              className="h-7 w-7 rounded-full text-state-danger hover:bg-state-danger/15"
+                              aria-label="Kalemi sil"
+                            >
+                              <Trash2 className="mx-auto h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        ) : null}
+                        <div className="ml-2 tabular-nums">{formatKurus(line.subtotal_kurus)}</div>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
 
               <div className="mt-4 flex flex-wrap gap-2">
@@ -286,6 +372,16 @@ export function TableDetailScreen() {
                     leftIcon={<Wallet className="h-4 w-4" />}
                   >
                     Ödeme al
+                  </Button>
+                ) : null}
+                {order.payment_state !== 'paid' && order.lines.length > 0 ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setSplittingOrder(order)}
+                    leftIcon={<Split className="h-4 w-4" />}
+                  >
+                    Hesabı böl
                   </Button>
                 ) : null}
                 {order.state !== 'served' && order.state !== 'cancelled' ? (
@@ -345,11 +441,19 @@ export function TableDetailScreen() {
             Diğer (kasada karma)
           </Button>
           <p className="text-xs text-textc-muted">
-            SanalPOS canlı entegrasyonu Faz 4'te eklenir. Şu anda kart ödemesi
-            manuel cihazdan alınıp buradan işaretlenir.
+            SanalPOS canlı entegrasyonu için iyzico anahtarı `Ayarlar` ekranında
+            tanımlanır. Şu anda kart ödemesi harici cihazdan alınıp burada
+            işaretlenir.
           </p>
         </div>
       </Modal>
+
+      <SplitBillModal
+        order={splittingOrder}
+        open={Boolean(splittingOrder)}
+        onClose={() => setSplittingOrder(null)}
+        onConfirm={onSplitConfirm}
+      />
     </div>
   );
 }

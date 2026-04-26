@@ -11,12 +11,22 @@ import {
   useHaptic,
 } from '@hashtap/ui';
 import { fetchPosMenu, submitOrder, type MenuItem, type MenuPayload } from '../lib/pos.js';
+import { ModifierSheet, type ModifierSelection } from '../components/ModifierSheet.js';
 
 interface CartLine {
+  key: string;
   menuItemId: number;
   name: string;
   priceKurus: number;
+  modifierIds: number[];
+  modifierNames: string[];
+  modifierDeltaKurus: number;
   qty: number;
+  note?: string;
+}
+
+function lineKey(itemId: number, modifierIds: number[]): string {
+  return `${itemId}:${[...modifierIds].sort((a, b) => a - b).join(',')}`;
 }
 
 const formatter = new Intl.NumberFormat('tr-TR', {
@@ -40,6 +50,7 @@ export function MenuBrowseScreen() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [sheetItem, setSheetItem] = useState<MenuItem | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,24 +77,53 @@ export function MenuBrowseScreen() {
     return active?.items ?? [];
   }, [menu, categoryId]);
 
-  const total = cart.reduce((sum, l) => sum + l.priceKurus * l.qty, 0);
+  const total = cart.reduce(
+    (sum, l) => sum + l.qty * (l.priceKurus + l.modifierDeltaKurus),
+    0,
+  );
 
-  function add(item: MenuItem) {
+  function pushLine(item: MenuItem, sel: ModifierSelection | null) {
     haptic('light');
+    const modifierIds = sel?.modifierIds ?? [];
+    const modifierNames = sel?.modifierNames ?? [];
+    const modifierDelta = sel?.modifierDeltaKurus ?? 0;
+    const note = sel?.note;
+    const key = lineKey(item.id, modifierIds);
     setCart((prev) => {
-      const line = prev.find((l) => l.menuItemId === item.id);
-      if (line) return prev.map((l) => (l === line ? { ...l, qty: l.qty + 1 } : l));
+      const existing = prev.find((l) => l.key === key && l.note === note);
+      if (existing)
+        return prev.map((l) =>
+          l.key === existing.key && l.note === note ? { ...l, qty: l.qty + 1 } : l,
+        );
       return [
         ...prev,
-        { menuItemId: item.id, name: item.name.tr, priceKurus: item.price_kurus, qty: 1 },
+        {
+          key,
+          menuItemId: item.id,
+          name: item.name.tr,
+          priceKurus: item.price_kurus,
+          modifierIds,
+          modifierNames,
+          modifierDeltaKurus: modifierDelta,
+          qty: 1,
+          note,
+        },
       ];
     });
   }
 
-  function dec(menuItemId: number) {
+  function add(item: MenuItem) {
+    if (item.modifier_groups.length > 0) {
+      setSheetItem(item);
+    } else {
+      pushLine(item, null);
+    }
+  }
+
+  function dec(key: string) {
     setCart((prev) =>
       prev.flatMap((l) => {
-        if (l.menuItemId !== menuItemId) return [l];
+        if (l.key !== key) return [l];
         const next = l.qty - 1;
         return next <= 0 ? [] : [{ ...l, qty: next }];
       }),
@@ -103,7 +143,12 @@ export function MenuBrowseScreen() {
     try {
       const order = await submitOrder({
         table_id: tableId,
-        items: cart.map((l) => ({ item_id: l.menuItemId, quantity: l.qty })),
+        items: cart.map((l) => ({
+          item_id: l.menuItemId,
+          quantity: l.qty,
+          modifier_ids: l.modifierIds,
+          note: l.note,
+        })),
         require_receipt: false,
       });
       haptic('success');
@@ -170,7 +215,14 @@ export function MenuBrowseScreen() {
 
           <div className="grid grid-cols-1 gap-2">
             {visible.map((item) => {
-              const line = cart.find((l) => l.menuItemId === item.id);
+              // Bu üründen sepette toplam adet (varyant farkına bakmaksızın)
+              const totalQty = cart
+                .filter((l) => l.menuItemId === item.id)
+                .reduce((s, l) => s + l.qty, 0);
+              // Modifier yoksa tek key var → kolay azalt
+              const simpleLine = cart.find(
+                (l) => l.menuItemId === item.id && l.modifierIds.length === 0,
+              );
               return (
                 <Card key={item.id} padding="sm" radius="md">
                   <div className="flex items-center justify-between gap-3">
@@ -178,24 +230,29 @@ export function MenuBrowseScreen() {
                       <CardTitle className="!text-base">{item.name.tr}</CardTitle>
                       <div className="mt-0.5 text-xs tabular-nums text-textc-muted">
                         {fmt(item.price_kurus)}
+                        {item.modifier_groups.length > 0 ? ' · seçenekli' : ''}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {line ? (
+                      {simpleLine ? (
                         <>
                           <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => dec(item.id)}
+                            onClick={() => dec(simpleLine.key)}
                             className="!h-10 !w-10 !p-0"
                             aria-label="Azalt"
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
                           <span className="w-6 text-center text-lg font-bold tabular-nums">
-                            {line.qty}
+                            {totalQty}
                           </span>
                         </>
+                      ) : totalQty > 0 ? (
+                        <span className="w-6 text-center text-lg font-bold tabular-nums">
+                          {totalQty}
+                        </span>
                       ) : null}
                       <Button
                         size="sm"
@@ -227,6 +284,15 @@ export function MenuBrowseScreen() {
           </Button>
         </div>
       ) : null}
+
+      <ModifierSheet
+        item={sheetItem}
+        open={Boolean(sheetItem)}
+        onClose={() => setSheetItem(null)}
+        onConfirm={(sel) => {
+          if (sheetItem) pushLine(sheetItem, sel);
+        }}
+      />
     </div>
   );
 }

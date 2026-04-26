@@ -11,3 +11,4 @@ from . import hashtap_earsiv_provider
 from . import hashtap_earsiv_receipt
 from . import hashtap_order
 from . import hashtap_pos_order
+from . import hashtap_day_close

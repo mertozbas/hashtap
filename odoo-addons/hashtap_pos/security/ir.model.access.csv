@@ -23,3 +23,5 @@ access_hashtap_earsiv_provider_user,hashtap.earsiv.provider user,model_hashtap_e
 access_hashtap_earsiv_provider_system,hashtap.earsiv.provider system,model_hashtap_earsiv_provider,base.group_system,1,1,1,1
 access_hashtap_earsiv_receipt_user,hashtap.earsiv.receipt user,model_hashtap_earsiv_receipt,base.group_user,1,1,0,0
 access_hashtap_earsiv_receipt_system,hashtap.earsiv.receipt system,model_hashtap_earsiv_receipt,base.group_system,1,1,1,1
+access_hashtap_day_close_user,hashtap.day.close user,model_hashtap_day_close,base.group_user,1,1,1,0
+access_hashtap_day_close_system,hashtap.day.close system,model_hashtap_day_close,base.group_system,1,1,1,1

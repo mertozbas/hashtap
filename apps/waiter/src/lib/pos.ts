@@ -60,6 +60,20 @@ export interface TableDetailResponse {
   orders: PosOrder[];
 }
 
+export interface Modifier {
+  id: number;
+  name: { tr: string; en: string };
+  price_delta_kurus: number;
+}
+
+export interface ModifierGroup {
+  id: number;
+  name: { tr: string; en: string };
+  min_select: number;
+  max_select: number;
+  modifiers: Modifier[];
+}
+
 export interface MenuItem {
   id: number;
   name: { tr: string; en: string };
@@ -67,6 +81,7 @@ export interface MenuItem {
   price_kurus: number;
   currency: string;
   is_featured: boolean;
+  modifier_groups: ModifierGroup[];
 }
 
 export interface MenuCategory {
@@ -99,9 +114,10 @@ export async function fetchPosMenu(): Promise<MenuPayload> {
   return json<MenuPayload>(await fetch('/v1/pos/menu'));
 }
 
-interface SubmitLine {
+export interface SubmitLine {
   item_id: number;
   quantity: number;
+  modifier_ids?: number[];
   note?: string;
 }
 

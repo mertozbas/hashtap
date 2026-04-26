@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hashtap_day_close_tree" model="ir.ui.view">
+        <field name="name">hashtap.day.close.tree</field>
+        <field name="model">hashtap.day.close</field>
+        <field name="arch" type="xml">
+            <tree create="false" delete="false">
+                <field name="day"/>
+                <field name="name"/>
+                <field name="order_count"/>
+                <field name="gross"/>
+                <field name="collected"/>
+                <field name="cash_diff"/>
+                <field name="create_date" string="Kapanış"/>
+                <field name="note" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hashtap_day_close_form" model="ir.ui.view">
+        <field name="name">hashtap.day.close.form</field>
+        <field name="model">hashtap.day.close</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="day" readonly="1"/>
+                            <field name="order_count" readonly="1"/>
+                            <field name="gross"/>
+                            <field name="collected"/>
+                        </group>
+                        <group>
+                            <field name="cash_system_kurus" string="Sistem Nakit (kuruş)"/>
+                            <field name="cash_counted_kurus" string="Sayım Nakit (kuruş)"/>
+                            <field name="cash_diff"/>
+                            <field name="create_date" string="Kapanış"/>
+                        </group>
+                    </group>
+                    <group string="Not">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hashtap_day_close" model="ir.actions.act_window">
+        <field name="name">Z Raporları</field>
+        <field name="res_model">hashtap.day.close</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_hashtap_day_close"
+              name="Z Raporları (Gün Sonu)"
+              parent="menu_hashtap_operations"
+              action="action_hashtap_day_close"
+              sequence="80"/>
+
+</odoo>

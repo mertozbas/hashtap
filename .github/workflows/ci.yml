@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typescript:
+    name: TypeScript typecheck + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck (all workspaces)
+        run: npm run typecheck
+
+      - name: Test (all workspaces)
+        run: npm test --workspaces --if-present
+
+  python:
+    name: Odoo addon syntax + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Syntax check (Python files)
+        run: |
+          python -m compileall -q odoo-addons/hashtap_pos odoo-addons/hashtap_theme
+          echo "All Python files compile cleanly."
+
+      - name: Manifest sanity
+        run: |
+          python -c "
+          import ast, pathlib
+          for m in pathlib.Path('odoo-addons').rglob('__manifest__.py'):
+              ast.literal_eval(m.read_text())
+              print(f'OK: {m}')
+          "

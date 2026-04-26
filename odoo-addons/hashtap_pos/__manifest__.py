@@ -19,6 +19,7 @@ Detay: docs/MODULE_DESIGN.md
         "pos_restaurant",
         "account",
         "stock",
+        "l10n_tr",
         "hashtap_theme",
     ],
     "data": [
@@ -33,6 +34,7 @@ Detay: docs/MODULE_DESIGN.md
         "views/hashtap_earsiv_views.xml",
         "views/hashtap_kds_templates.xml",
         "views/hashtap_kds_menu.xml",
+        "views/hashtap_day_close_views.xml",
     ],
     "external_dependencies": {
         "python": ["requests", "iyzipay"],
