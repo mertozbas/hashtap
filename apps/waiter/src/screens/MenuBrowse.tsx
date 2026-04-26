@@ -12,6 +12,7 @@ import {
 } from '@hashtap/ui';
 import { fetchPosMenu, submitOrder, type MenuItem, type MenuPayload } from '../lib/pos.js';
 import { ModifierSheet, type ModifierSelection } from '../components/ModifierSheet.js';
+import { useQueueStore } from '../store/queue.js';
 
 interface CartLine {
   key: string;
@@ -140,15 +141,16 @@ export function MenuBrowseScreen() {
       return;
     }
     setSubmitting(true);
+    const items = cart.map((l) => ({
+      item_id: l.menuItemId,
+      quantity: l.qty,
+      modifier_ids: l.modifierIds,
+      note: l.note,
+    }));
     try {
       const order = await submitOrder({
         table_id: tableId,
-        items: cart.map((l) => ({
-          item_id: l.menuItemId,
-          quantity: l.qty,
-          modifier_ids: l.modifierIds,
-          note: l.note,
-        })),
+        items,
         require_receipt: false,
       });
       haptic('success');
@@ -160,6 +162,25 @@ export function MenuBrowseScreen() {
       setCart([]);
       setTimeout(() => navigate(`/tables/${tableId}`), 600);
     } catch (err) {
+      // Offline ya da geçici hata — kuyruğa al, sonra otomatik flush et
+      try {
+        await useQueueStore.getState().enqueue({
+          id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          tableId,
+          lines: items,
+        });
+        haptic('warning');
+        toast.show({
+          title: 'Sipariş kuyruğa alındı',
+          description: 'Bağlantı dönünce otomatik gönderilecek',
+          tone: 'warning',
+        });
+        setCart([]);
+        setTimeout(() => navigate(`/tables/${tableId}`), 600);
+        return;
+      } catch (q) {
+        // Hem online hem offline başarısız — gerçekten hata
+      }
       haptic('error');
       toast.show({
         title: 'Gönderilemedi',

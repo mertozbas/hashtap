@@ -5,7 +5,7 @@ açısından tek referans noktasıdır. Diğer dokümanlar (ROADMAP, DATA_MODEL,
 MODULE_DESIGN...) tasarım niyetini ve hedefini anlatır; **bu sayfa
 gerçeği anlatır**. Yeni iş biter bitmez bu sayfa güncellenir.
 
-Son güncelleme: 2026-04-24.
+Son güncelleme: 2026-04-26.
 
 ## 🚨 Stratejik pivot — 2026-04-23
 
@@ -53,17 +53,17 @@ backend, payment, e-Arşiv, KDS, white-label).
 | 4 | iyzico ödeme (sandbox) | ✅ | Payment adapter pattern, `mock` + `iyzico` adaptörleri, 3DS callback + idempotency. |
 | 5 | e-Arşiv (mock + Foriba iskeleti) | ✅ | earsiv adapter pattern, `mock` + `foriba` (iskelet), **fail-close** uygulandı. |
 | **6a** | **KDS (Kitchen Display)** | ✅ | `/hashtap/kds` tam ekran, 3 kolon, polling, beep. |
-| **6b** | **Print-bridge (ESC/POS)** | ✅ iskelet | Kalıcı kuyruk (JSONL), retry backoff, WS reconnect, flush/test scripts. |
+| **6b** | **Print-bridge (ESC/POS)** | ✅ | Kalıcı kuyruk, retry backoff, WS reconnect, **6 unit test**. Gerçek termal yazıcı testi pilot öncesi. |
 | **7.5** | **hashtap_theme doldur (white-label pass)** | ✅ | Login CSS-branded, backend navbar + buton overrides, "Powered by Odoo" gizli. |
-| **7** | **POS adapter (SambaPOS + Adisyo)** | ✅ iskelet | GraphQL + REST client, mock mode, idempotent push, stableUuid mapping, 9 test geçiyor. |
-| **8** | **Installer CLI (`packages/installer`)** | ✅ iskelet | Zod config schema, `@inquirer/prompts` wizard, docker compose + Tailscale + Cloudflare step'leri, smoke test, `--dry-run`. |
+| **7** | **POS adapter (SambaPOS + Adisyo)** | ✅ iskelet | GraphQL + REST client, mock mode, idempotent push, stableUuid mapping, **9 test**. Canlı entegrasyon partnership bağımlı. |
+| **8** | **Installer CLI (`packages/installer`)** | ✅ | Zod config + wizard + docker/Tailscale/Cloudflare step'leri + smoke test + `--dry-run`. **12 unit test + Docker fresh-Ubuntu testi geçiyor.** |
 | **9** | **Pilot hazırlık** | ✅ plan | `docs/PILOT.md` — 2 haftalık hazırlık + pilot başlangıç kontrol listesi. |
 | 10 | Pilot (4 hafta canlı) | ⏳ | Pilot restoran seçildiğinde başlar — `docs/PILOT.md` §4. |
 | **11** | **Remote support + backup + monitoring** | ✅ | ops-api + heartbeat daemon + restic backup + 7 runbook + docker-compose profile'ları. |
-| **12** | **Design system (`packages/ui`)** | ✅ | Button/Card/Input/Modal/Toast/Badge/Skeleton/EmptyState/LiveIndicator + `useTheme`/`useHaptic`, Tailwind preset. |
+| **12** | **Design system (`packages/ui`)** | ✅ | 9 bileşen + 2 hook + Tailwind preset, **5 test**. |
 | **13** | **KDS dokunmatik + bump-bar** | ✅ | 72px touch, 1-9 kart seç, ok/Enter/Backspace, istasyon filtresi (`?station=hot`). |
-| **14** | **Cashier uygulaması** | ✅ iskelet | Vite + React + `@hashtap/ui`. Home/Orders/NewOrder/Tables/Settings ekranları; zustand store; demo menü + sepet. |
-| **15** | **Waiter uygulaması** | ✅ iskelet | PWA + offline queue (idb-keyval), haptic feedback, Tables/Detail/Menu/Notifications; bildirim store. |
+| **14** | **Cashier uygulaması** | ✅ | Salon (canlı 5sn polling) → Masa detayı (kalem +/- ve sil, mutfağa gönder, ödeme modal'ı, bill split modal'ı) + Yeni sipariş (modifier UI, masa seçici) + **Day close ekranı** (Z raporu, kasa sayım/fark) + Sistem sağlığı dashboard'ı (Settings). |
+| **15** | **Waiter uygulaması** | ✅ | Tables → Detay → Menu (modifier sheet) + **offline auto-flush** (online dönünce queue işlenir, exponential retry). |
 
 Notlar:
 

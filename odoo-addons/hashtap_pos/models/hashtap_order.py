@@ -256,6 +256,7 @@ class HashtapOrder(models.Model):
                 "state": "paid" if order.state == "placed" else order.state,
             })
             order.message_post(body=f"Ödeme tamamlandı: {transaction.name}")
+            order._post_paid_bookkeeping()
             if order.require_receipt:
                 # Fail-close: fiş başarıyla kesilmeden mutfak tetiklenmez.
                 order._issue_earsiv_receipt()
@@ -446,10 +447,147 @@ class HashtapOrder(models.Model):
                 "state": "paid" if order.state == "placed" else order.state,
             })
             order.message_post(body="Ödeme kasada alındı olarak işaretlendi.")
+            order._post_paid_bookkeeping()
             if order.require_receipt:
                 order._issue_earsiv_receipt()
             else:
                 order._fire_kitchen()
+
+    # ============================================================
+    # Muhasebe + stok köprüsü
+    # ============================================================
+
+    def _post_paid_bookkeeping(self):
+        """Ödenen siparişler için muhasebe + stok hareketleri.
+
+        - account.move (out_invoice, posted) oluşturur — ciro ve KDV.
+        - stock.quant'ı satılan ürünler kadar düşer (proper inventory).
+
+        Idempotent: aynı siparişe ikinci çağrıda no-op (aktif fatura
+        zaten varsa atla).
+        """
+        for order in self:
+            try:
+                if not order._already_invoiced():
+                    order._create_customer_invoice()
+                order._decrement_stock()
+            except Exception as e:  # noqa: BLE001
+                _logger.warning(
+                    "post_paid_bookkeeping failed for %s: %s", order.name, e,
+                )
+
+    def _already_invoiced(self):
+        self.ensure_one()
+        Move = self.env["account.move"].sudo()
+        return bool(Move.search_count([
+            ("invoice_origin", "=", self.name),
+            ("move_type", "=", "out_invoice"),
+            ("state", "in", ("posted", "draft")),
+        ]))
+
+    def _resolve_walkin_partner(self):
+        Partner = self.env["res.partner"].sudo()
+        partner = Partner.search(
+            [("name", "=", "QR Walk-in"), ("company_id", "in",
+             [False, self.company_id.id])],
+            limit=1,
+        )
+        if partner:
+            return partner
+        return Partner.create({
+            "name": "QR Walk-in",
+            "company_id": self.company_id.id,
+            "customer_rank": 1,
+        })
+
+    def _resolve_sales_journal(self):
+        Journal = self.env["account.journal"].sudo()
+        journal = Journal.search([
+            ("type", "=", "sale"),
+            ("company_id", "=", self.company_id.id),
+        ], limit=1)
+        if journal:
+            return journal
+        return Journal.create({
+            "name": "HashTap Satış",
+            "code": "HTS",
+            "type": "sale",
+            "company_id": self.company_id.id,
+        })
+
+    def _resolve_income_account(self):
+        Account = self.env["account.account"].sudo()
+        return Account.search([
+            ("account_type", "=", "income"),
+            ("company_id", "=", self.company_id.id),
+        ], limit=1)
+
+    def _create_customer_invoice(self):
+        """Posted out_invoice oluştur."""
+        self.ensure_one()
+        partner = self._resolve_walkin_partner()
+        journal = self._resolve_sales_journal()
+        income = self._resolve_income_account()
+        if not income:
+            _logger.warning("No income account, skipping invoice for %s", self.name)
+            return False
+
+        line_vals = []
+        for line in self.line_ids:
+            product = line.item_id.product_tmpl_id.product_variant_id
+            tmpl_income = line.item_id.product_tmpl_id.property_account_income_id
+            account = tmpl_income or income
+            line_vals.append((0, 0, {
+                "product_id": product.id if product else False,
+                "name": line.item_name,
+                "quantity": line.quantity,
+                "price_unit": (
+                    line.unit_price_kurus + line.modifier_total_kurus
+                ) / 100.0,
+                "account_id": account.id,
+            }))
+
+        move = self.env["account.move"].sudo().create({
+            "move_type": "out_invoice",
+            "partner_id": partner.id,
+            "invoice_date": fields.Date.context_today(self.env.user),
+            "journal_id": journal.id,
+            "invoice_origin": self.name,
+            "invoice_line_ids": line_vals,
+        })
+        try:
+            move.action_post()
+        except Exception as e:  # noqa: BLE001
+            _logger.warning("invoice post failed for %s: %s", self.name, e)
+        return move
+
+    def _decrement_stock(self):
+        """Stok düşümü — direct quant edit.
+
+        MVP: pos.order workflow yerine doğrudan stock.quant. Üretimde
+        pos.order köprüsüne geçilirse buradan kaldırılır.
+        """
+        self.ensure_one()
+        Quant = self.env["stock.quant"].sudo()
+        Location = self.env["stock.location"].sudo()
+        stock_loc = Location.search([
+            ("usage", "=", "internal"),
+            ("company_id", "=", self.company_id.id),
+        ], limit=1)
+        if not stock_loc:
+            return
+        for line in self.line_ids:
+            product = line.item_id.product_tmpl_id.product_variant_id
+            if not product:
+                continue
+            quants = Quant.search([
+                ("product_id", "=", product.id),
+                ("location_id", "=", stock_loc.id),
+            ])
+            if not quants:
+                continue
+            q = quants[0]
+            q.write({"quantity": max(0, q.quantity - line.quantity)})
 
 
 class HashtapOrderLine(models.Model):

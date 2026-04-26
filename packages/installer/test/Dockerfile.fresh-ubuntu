@@ -1,0 +1,49 @@
+# Installer'ın temiz bir Ubuntu üstünde çalışıp çalışmadığını sınar.
+# `--dry-run` ile gerçek Docker compose tetiklenmez; sadece config
+# parsing, .env üretimi ve kontrol akışı doğrulanır.
+#
+# Çalıştırma:
+#   docker build -f packages/installer/test/Dockerfile.fresh-ubuntu -t hashtap-installer-test .
+#   docker run --rm hashtap-installer-test
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NODE_VERSION=20
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates gnupg dnsutils \
+    && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /repo
+
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY packages/shared packages/shared
+COPY packages/installer packages/installer
+
+RUN npm install --workspace @hashtap/installer --include=workspace-root --ignore-scripts \
+    && npm install @esbuild/linux-x64 --no-save --force --ignore-scripts || true
+
+# Sahte config dosyası — wizard atlanır, doğrudan dry-run akışı
+RUN cat > /tmp/test-config.json <<'EOF'
+{
+  "installationId": "rest-test",
+  "slug": "kafe-test",
+  "restaurantName": "Test Kafe",
+  "tenantId": "00000000-0000-0000-0000-000000000001",
+  "package": "pro",
+  "version": "0.1.0",
+  "admin": { "email": "admin@test.com", "password": "secure-pw-123" },
+  "iyzico": { "mode": "sandbox", "apiKey": "k", "secretKey": "s" },
+  "earsiv": { "provider": "mock" },
+  "ops": { "opsUrl": "https://ops.example.com", "installationToken": "tok" },
+  "cloudflare": { "enabled": false },
+  "tailscale": { "enabled": false },
+  "network": { "caddyHttpPort": 80, "caddyHttpsPort": 443 }
+}
+EOF
+
+# `--dry-run` akışını doğrula
+CMD ["sh", "-c", "npx -y -p @hashtap/installer hashtap-installer --config /tmp/test-config.json --dry-run || npx tsx /repo/packages/installer/src/cli.ts --config /tmp/test-config.json --dry-run"]

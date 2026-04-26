@@ -472,16 +472,16 @@ Detay: `apps/WAITER.md` §9.
 | 6a | W12 | KDS (Kitchen Display) | ✅ |
 | 7.5 | W12 | `hashtap_theme` doldurma (pass 1) | ✅ |
 | — | W13 | **🚨 Stratejik pivot + dokümantasyon** | ✅ |
-| 6b | pilot tetikli | Print-bridge (ESC/POS + queue + retry) | ✅ iskelet |
-| 7 | W14–W15 | POS adapter (SambaPOS + Adisyo stub/live) | ✅ iskelet |
-| 8 | W15–W17 | **Installer CLI (`packages/installer`)** | ✅ iskelet |
+| 6b | pilot tetikli | Print-bridge (ESC/POS + queue + retry + 6 test) | ✅ |
+| 7 | W14–W15 | POS adapter (SambaPOS + Adisyo + 9 test) | ✅ iskelet (canlı API hesabı bekleniyor) |
+| 8 | W15–W17 | **Installer CLI** + Docker fresh-Ubuntu testi + 12 test | ✅ |
 | 11 | W18–W19 | **Remote support + backup + monitoring** | ✅ |
-| 12 | W20–W21 | **Design system / packages/ui** | ✅ |
-| 13 | W22 | **KDS dokunmatik iyileştirmeleri + bump-bar** | ✅ |
-| 14 | W23–W30 | **Cashier uygulaması** | ✅ iskelet |
-| 15 | W28–W35 (paralel) | **Waiter uygulaması** | ✅ iskelet |
-| 9 | W34–W35 | **Pilot hazırlık (docs/PILOT.md)** | ✅ plan |
-| 10 | W36–W39 | Pilot (4 hafta canlı) | ⏳ pilot restoran bekleniyor |
+| 12 | W20–W21 | **Design system / packages/ui** + 5 test | ✅ |
+| 13 | W22 | **KDS dokunmatik + bump-bar** | ✅ |
+| 14 | W23–W30 | **Cashier** — modifier + bill split + day close + Z raporu + Settings + sistem sağlığı | ✅ |
+| 15 | W28–W35 (paralel) | **Waiter** — modifier sheet + offline auto-flush queue | ✅ |
+| 9 | W34–W35 | **Pilot hazırlık** + `USER_TODO.md` | ✅ |
+| 10 | W36–W39 | Pilot (4 hafta canlı) | ⏳ üçüncü taraf hesapları + donanım bekleniyor |
 
 Pivot sonrası toplam tahmini yol: **~40 hafta** (Faz 14-15 paralel
 çalışırsa ~35 hafta). Bu 1-2 geliştirici varsayımı; cashier + waiter
