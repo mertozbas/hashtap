@@ -8,10 +8,19 @@
         </xpath>
     </template>
 
-    <!-- Favicon: Odoo'nun view inheritance whitelist'i @rel / @href
-         öznitelikleri kabul etmediği için xpath ile override edilemiyor.
-         Şirket logosunu Ayarlar → Şirketler altında HashTap logosu olarak
-         ayarlamak /web ve /web/login çevresinde HashTap mark'ını gösterir.
+    <!-- HashTap favicon — Odoo default favicon ve apple-touch-icon'u
+         HashTap logosuyla değiştir. View inheritance whitelist nedeniyle
+         <link>'i replace edemiyoruz; head'e yeni link ekliyoruz, JS
+         (title.js) eski Odoo link'lerini runtime'da kaldırıyor.
     -->
+    <template id="hashtap_favicon" name="HashTap Favicon"
+              inherit_id="web.layout">
+        <xpath expr="//head" position="inside">
+            <link data-hashtap="1" rel="icon" type="image/svg+xml"
+                  href="/hashtap_theme/static/src/img/favicon.svg"/>
+            <link data-hashtap="1" rel="apple-touch-icon"
+                  href="/hashtap_theme/static/src/img/favicon.svg"/>
+        </xpath>
+    </template>
 
 </odoo>
