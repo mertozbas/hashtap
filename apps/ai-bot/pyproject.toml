@@ -1,0 +1,50 @@
+[project]
+name = "hashtap-ai-bot"
+version = "0.1.0"
+description = "HashTap CEO — restaurant owner AI assistant (Strands)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+
+dependencies = [
+    "strands-agents>=0.1.0",
+    "strands-agents-tools>=0.1.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "websockets>=13.0",
+    "httpx>=0.28.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "python-dotenv>=1.0.0",
+    "ollama>=0.4.0",
+    # Optional providers — yüklenmezse provider switch o providerı atlar
+    "anthropic>=0.40.0",
+    "openai>=1.50.0",
+    "boto3>=1.35.0",
+    # Telegram (kanaldan biri)
+    "strands-telegram>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.7.0",
+]
+
+[project.scripts]
+hashtap-ai-bot = "src.main:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

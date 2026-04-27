@@ -107,6 +107,28 @@ services:
       - restic_repo:/restic-repo
       - backup_tmp:/backup/pg
 
+  ai-bot:
+    build:
+      context: ../../apps/ai-bot
+    image: hashtap/ai-bot:dev
+    restart: unless-stopped
+    profiles: ["ai"]
+    env_file:
+      - ../../apps/ai-bot/.env
+    environment:
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://host.docker.internal:11434}
+      ODOO_URL: http://odoo:8069
+      DISCUSS_BUS_URL: ws://odoo:8072/websocket
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      odoo:
+        condition: service_started
+    volumes:
+      - ai_bot_sessions:/app/sessions
+    ports:
+      - "4200:4200"
+
   watchtower:
     image: containrrr/watchtower:latest
     restart: unless-stopped
@@ -131,3 +153,4 @@ volumes:
   odoo_redis:
   restic_repo:
   backup_tmp:
+  ai_bot_sessions:
